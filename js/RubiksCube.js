@@ -191,7 +191,7 @@ visualCube.addEventListener("click", function(){
     var newView = currentView == ""? "plan": "";
     localStorage.setItem("visualCubeView", newView);
     var algTest = algorithmHistory[historyIndex];
-    updateVisualCube(algTest ? algTest.preorientation+algTest.scramble : "");
+    updateVisualCube(algTest ? algTest.scramble : "");
 });
 
 
