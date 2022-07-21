@@ -191,7 +191,7 @@ visualCube.addEventListener("click", function(){
     var newView = currentView == ""? "plan": "";
     localStorage.setItem("visualCubeView", newView);
     var algTest = algorithmHistory[historyIndex];
-    updateVisualCube(algTest ? algTest.scramble : "");
+    updateVisualCube(algTest ? algTest.preorientation+algTest.scramble : "");
 });
 
 
@@ -935,7 +935,7 @@ function updateVisualCube(algorithm){
 
     var view = localStorage.getItem("visualCubeView");
 
-    var imgsrc = "https://www.cubing.net/api/visualcube/?fmt=svg&size=300&view=" + view + "&bg=black&pzl=" + pzl + "&alg=x2" + algorithm;
+    var imgsrc = "https://www.cubing.net/api/visualcube/?fmt=svg&size=300&view=" + view + "&bg=black&pzl=" + pzl + "&alg=" + algorithm;
 
     if (useCustomColourScheme.checked){
         validateCustomColourScheme();
