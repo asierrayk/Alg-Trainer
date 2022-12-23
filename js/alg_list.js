@@ -1257,8 +1257,12 @@ var zbll_juliette = {'T1': ["R U R' U R U2 R' U2 R' U' R U' R' U2 R/U' R U R' U'
 "AS6":["U' R U2 R' U' F' R U R' U' R' F R2 U' R'", " U' R' U2 R' D' R U R' D R2 U' R' U2 R", " U2 R' U' R U' R2 D' r U2 r' D R2", " R U' R' U2 R U' R2 D' R U' R' D R", " U R U R' U' R2 U R U R' U' D R' U' R D' R", " U2 R' U' R U' R2 D' R U2 R' D R2", " U2 R U2 R' U2 L' U R U' R' L", " R' U2 R' D' R U2 R' D R U' R U' R' U2 R", " R' U' R U R' F R U R' U' R' F' R2", " U R U2 R D' R U' R' D R U R U' R U' R'", " U R U R' U R' F U' R2 U' R2 U F' U R", " U' R U R' U R' U' R2 U' R D' R U R' D R U R"],
   
   };
+var bld = {
+'ufr': ["U' R' U' L U R U' L' U2", "R' U R U' R' D2 R U R' D2' U' R", "U R D2 R U' R' D2' R U R2' U'", "Lw U' D' R D R' U2 R D' R' U2' D U Lw'", "U' D' R2' D R U R' D' R U' R D U", "D' R D R' U' R D2 R' U R D R' D"]
+}
 
 window.algs = {
+    "BLD": bld,
     "ZBLL (Juliette Sebastien)": zbll_juliette,
     "ZBLL (Jabari Nuruddin, Justin Taylor, Tao Yu)" :zbll_jabari_justin_tao,
     "ZBLL (Jabari Nuruddin)" :zbll_full,
