@@ -214,5 +214,18 @@
         <script src="js/alg_list.js"></script>
         <script src="js/keymaps.js"></script>
         <script src="js/RubiksCube.js"></script>
+        <script>
+            const botones = document.querySelector('.botones');
+            botones.addEventListener('scroll', function() {
+                bootnes.style.position = 'fixed';
+                botones.style.top = '0';
+            });
+            window.addEventListener('scroll', function() {
+                if (window.scrollY === 0) {
+                    botones.style.position = 'relative';
+                    botones.style.top = 'auto';
+                }
+            });
+        </script>
     </body>
 </html>
