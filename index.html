@@ -14,7 +14,6 @@
         <div style="display:none;" id="page" class="animate-bottom">
 
             <p id="scramble" class=scramble>Scramble</p>
-            <hr>
             <div class=column_left>
 
                 <select id="algsetpicker" size=18 class=algsetpicker>
@@ -147,10 +146,19 @@
                     <p id="algdisp" class=algdisp>Solution</p>
                 </div>
 
+                <div id="controlnext">
+                    <button onclick="nextScramble()">Next Scramble</button>
+                </div>
+                <div id="controlprevious">
+                    <button onclick="displayAlgorithmForPreviousTest()">Show Solution</button>
+                </div>
+
                 <div id="controls">
                     <button onclick="nextScramble()">Next Scramble</button>
                     <button onclick="displayAlgorithmForPreviousTest()">Show Solution</button>
                 </div>
+
+
             </div>
 
 
@@ -214,18 +222,5 @@
         <script src="js/alg_list.js"></script>
         <script src="js/keymaps.js"></script>
         <script src="js/RubiksCube.js"></script>
-        <script>
-            const botones = document.querySelector('.botones');
-            botones.addEventListener('scroll', function() {
-                bootnes.style.position = 'fixed';
-                botones.style.top = '0';
-            });
-            window.addEventListener('scroll', function() {
-                if (window.scrollY === 0) {
-                    botones.style.position = 'relative';
-                    botones.style.top = 'auto';
-                }
-            });
-        </script>
     </body>
 </html>
