@@ -65,13 +65,13 @@ var defaults = {"useVirtual":true,
                 "fullCN":false,
                 "cubeType":"3x3",
                 "algsetpicker":document.getElementById("algsetpicker").options[0].value,
-                "useCustomColourScheme":true,
-                "customColourU":"yellow",
-                "customColourD":"white",
+                "useCustomColourScheme":false,
+                "customColourU":"white",
+                "customColourD":"yellow",
                 "customColourF":"green",
                 "customColourB":"blue",
-                "customColourR":"orange",
-                "customColourL":"red",
+                "customColourR":"red",
+                "customColourL":"orange",
                 "visualCubeView":"plan"
                };
 
@@ -935,7 +935,7 @@ function updateVisualCube(algorithm){
 
     var view = localStorage.getItem("visualCubeView");
 
-    var imgsrc = "https://www.cubing.net/api/visualcube/?fmt=svg&size=300&view=" + view + "&bg=black&pzl=" + pzl + "&alg=x2" + algorithm + "x2";
+	var imgsrc = "https://www.cubing.net/api/visualcube/?fmt=svg&size=300&view=" + view + "&bg=black&pzl=" + pzl + "&alg=x2" + algorithm;
 
     if (useCustomColourScheme.checked){
         validateCustomColourScheme();
