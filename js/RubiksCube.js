@@ -5,7 +5,7 @@ var currentScramble = "";
 var algArr;//This is the array of alternatives to currentAlgorithm
 var canvas = document.getElementById("cube");
 var ctx = canvas.getContext("2d");
-var stickerSize = canvas.width/5;
+var stickerSize = canvas.width/9;
 var currentAlgIndex = 0;
 var algorithmHistory = [];
 var shouldRecalculateStatistics = true;
@@ -431,41 +431,52 @@ function drawCube(cubeArray) {
         fillWithIndex(3, 5, "r", 7, cubeArray);
 
     }else{
-        fillWithIndex(0, 0, "l", 1, cubeArray);
-        fillWithIndex(1, 0, "u", 1, cubeArray);
-        fillWithIndex(2, 0, "u", 2, cubeArray);
-        fillWithIndex(3, 0, "u", 3, cubeArray);
-        fillWithIndex(4, 0, "r", 3, cubeArray);
-
-        fillWithIndex(0, 1, "l", 2, cubeArray);
-        fillWithIndex(1, 1, "u", 4, cubeArray);
-        fillWithIndex(2, 1, "u", 5, cubeArray);
-        fillWithIndex(3, 1, "u", 6, cubeArray);
-        fillWithIndex(4, 1, "r", 2, cubeArray);
-
-        fillWithIndex(0, 2, "l", 3, cubeArray);
-        fillWithIndex(1, 2, "u", 7, cubeArray);
-        fillWithIndex(2, 2, "u", 8, cubeArray);
-        fillWithIndex(3, 2, "u", 9, cubeArray);
-        fillWithIndex(4, 2, "r", 1, cubeArray);
-
-        fillWithIndex(0, 3, "l", 3, cubeArray);
-        fillWithIndex(1, 3, "f", 1, cubeArray);
-        fillWithIndex(2, 3, "f", 2, cubeArray);
-        fillWithIndex(3, 3, "f", 3, cubeArray);
-        fillWithIndex(4, 3, "r", 1, cubeArray);
-
-        fillWithIndex(0, 4, "l", 6, cubeArray);
-        fillWithIndex(1, 4, "f", 4, cubeArray);
-        fillWithIndex(2, 4, "f", 5, cubeArray);
-        fillWithIndex(3, 4, "f", 6, cubeArray);
-        fillWithIndex(4, 4, "r", 4, cubeArray);
-
-        fillWithIndex(0, 5, "l", 9, cubeArray);
-        fillWithIndex(1, 5, "f", 7, cubeArray);
-        fillWithIndex(2, 5, "f", 8, cubeArray);
-        fillWithIndex(3, 5, "f", 9, cubeArray);
-        fillWithIndex(4, 5, "r", 7, cubeArray);
+        fillWithIndex(2+0, 0, "l", 1, cubeArray);
+        fillWithIndex(2+1, 0, "u", 1, cubeArray);
+        fillWithIndex(2+2, 0, "u", 2, cubeArray);
+        fillWithIndex(2+3, 0, "u", 3, cubeArray);
+        fillWithIndex(2+4, 0, "r", 3, cubeArray);
+					  
+        fillWithIndex(2+0, 1, "l", 2, cubeArray);
+        fillWithIndex(2+1, 1, "u", 4, cubeArray);
+        fillWithIndex(2+2, 1, "u", 5, cubeArray);
+        fillWithIndex(2+3, 1, "u", 6, cubeArray);
+        fillWithIndex(2+4, 1, "r", 2, cubeArray);
+					  
+        fillWithIndex(2+0, 2, "l", 3, cubeArray);
+        fillWithIndex(2+1, 2, "u", 7, cubeArray);
+        fillWithIndex(2+2, 2, "u", 8, cubeArray);
+        fillWithIndex(2+3, 2, "u", 9, cubeArray);
+        fillWithIndex(2+4, 2, "r", 1, cubeArray);
+					  
+        fillWithIndex(2+0, 3, "l", 3, cubeArray);
+        fillWithIndex(2+1, 3, "f", 1, cubeArray);
+        fillWithIndex(2+2, 3, "f", 2, cubeArray);
+        fillWithIndex(2+3, 3, "f", 3, cubeArray);
+        fillWithIndex(2+4, 3, "r", 1, cubeArray);
+					  
+        fillWithIndex(2+0, 4, "l", 6, cubeArray);
+        fillWithIndex(2+1, 4, "f", 4, cubeArray);
+        fillWithIndex(2+2, 4, "f", 5, cubeArray);
+        fillWithIndex(2+3, 4, "f", 6, cubeArray);
+        fillWithIndex(2+4, 4, "r", 4, cubeArray);
+					  
+        fillWithIndex(2+0, 5, "l", 9, cubeArray);
+        fillWithIndex(2+1, 5, "f", 7, cubeArray);
+        fillWithIndex(2+2, 5, "f", 8, cubeArray);
+        fillWithIndex(2+3, 5, "f", 9, cubeArray);
+        fillWithIndex(2+4, 5, "r", 7, cubeArray);
+		
+		fillWithIndex(0, 4, "l", 4, cubeArray);
+		fillWithIndex(1, 4, "l", 5, cubeArray);
+		fillWithIndex(0, 5, "l", 7, cubeArray);
+		fillWithIndex(1, 5, "l", 8, cubeArray);
+		
+		
+		fillWithIndex(7, 4, "r", 5, cubeArray);
+		fillWithIndex(8, 4, "r", 6, cubeArray);
+		fillWithIndex(7, 5, "r", 8, cubeArray);
+		fillWithIndex(8, 5, "r", 9, cubeArray);
 
         let lineValue = document.getElementById("lines").value;
         if (lineValue === "none") return;
