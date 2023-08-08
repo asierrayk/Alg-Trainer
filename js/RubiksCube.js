@@ -514,6 +514,7 @@ function doAlg(algorithm){
 
     if (timerIsRunning && cube.isSolved() && isUsingVirtualCube()){
         stopTimer();
+        nextScramble();
     }
 }
 
