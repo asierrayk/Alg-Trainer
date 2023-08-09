@@ -1,5 +1,6 @@
 var currentRotation = "";
 var cube = new RubiksCube();
+const cola = []; // Almacena los ultimos 4 movimientos
 var currentAlgorithm = "";//After an alg gets tested for the first time, it becomes the currentAlgorithm.
 var currentScramble = "";
 var algArr;//This is the array of alternatives to currentAlgorithm
@@ -507,14 +508,46 @@ function drawCube(cubeArray) {
     }
 }
 
+function tieneConfiguracionDeseada(cola, configuracion) {
+    if (cola.length !== configuracion.length) {
+      return false;
+    }
+  
+    for (let i = 0; i < cola.length; i++) {
+      if (cola[i] !== configuracion[i]) {
+        return false;
+      }
+    }
+  
+    return true;
+  }
+
+function enqueue(element) {
+    cola.push(element);
+  
+    // Si la cola tiene más de tres elementos, eliminar el primero
+    if (cola.length > 3) {
+      cola.shift();
+    }
+  }
 
 function doAlg(algorithm){
+    enqueue(algorithm);
+    console.log(cola);
+
     cube.doAlgorithm(algorithm);
     drawCube(cube.cubestate);
+
+    if (tieneConfiguracionDeseada(cola, ["U", "U", "U'"])){
+        console.log("Asier");
+        console.log(cola);
+        displayAlgorithmForPreviousTest();
+    }
 
     if (timerIsRunning && cube.isSolved() && isUsingVirtualCube()){
         stopTimer();
         nextScramble();
+        cola.length = 0;
     }
 }
 
@@ -856,7 +889,7 @@ function reTestAlg(){
         return;
     }
     cube.resetCube();
-    doAlg(lastTest.preorientation);
+    //doAlg(lastTest.preorientation);
     doAlg(lastTest.scramble);
     drawCube(cube.cubestate);
 
