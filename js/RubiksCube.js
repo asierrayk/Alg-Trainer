@@ -526,22 +526,53 @@ function enqueue(element) {
     cola.push(element);
   
     // Si la cola tiene más de tres elementos, eliminar el primero
-    if (cola.length > 3) {
+    if (cola.length > 4) {
       cola.shift();
     }
   }
 
 function doAlg(algorithm){
     enqueue(algorithm);
-    console.log(cola);
 
     cube.doAlgorithm(algorithm);
     drawCube(cube.cubestate);
 
-    if (tieneConfiguracionDeseada(cola, ["U", "U", "U'"])){
-        console.log("Asier");
-        console.log(cola);
+    if (tieneConfiguracionDeseada(cola, ["U", "U", "U'", "U'"])){
+        stopTimer();
         displayAlgorithmForPreviousTest();
+        cola.length = 0;
+    } else if (tieneConfiguracionDeseada(cola, ["U'", "U'", "U'", "U'"]))
+    {
+
+        if (algorithmHistory.length<=1 || timerIsRunning){
+            return;
+        }
+        historyIndex--;
+
+        if (historyIndex<0){
+            alert('Reached end of solve log');
+            historyIndex = 0;
+        }
+        displayAlgorithmFromHistory(historyIndex);
+        cola.length = 0;
+    } else if (tieneConfiguracionDeseada(cola, ["U", "U", "U", "U"]))
+    {
+
+        if (timerIsRunning){
+            return;
+        }
+        historyIndex++;
+        if (historyIndex>=algorithmHistory.length){
+            nextScramble();
+            doNothingNextTimeSpaceIsPressed = false;
+            return;
+        }
+
+        displayAlgorithmFromHistory(historyIndex);
+        cola.length = 0;
+    } else if (tieneConfiguracionDeseada(cola, ["R'", "R'", "R", "R"])){
+        nextScramble();
+        cola.length = 0;
     }
 
     if (timerIsRunning && cube.isSolved() && isUsingVirtualCube()){
