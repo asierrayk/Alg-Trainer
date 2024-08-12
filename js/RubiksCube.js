@@ -537,11 +537,11 @@ function doAlg(algorithm){
     cube.doAlgorithm(algorithm);
     drawCube(cube.cubestate);
 
-    if (tieneConfiguracionDeseada(cola, ["B", "B", "B'", "B'"])){
+    if (tieneConfiguracionDeseada(cola, ["U", "U", "U'"])){
         stopTimer();
         displayAlgorithmForPreviousTest();
         cola.length = 0;
-    } else if (tieneConfiguracionDeseada(cola, ["B'", "B'", "B'"]))
+    } else if (tieneConfiguracionDeseada(cola, ["U'", "U'", "U'"]))
     {
 
         if (algorithmHistory.length<=1 || timerIsRunning){
@@ -555,7 +555,7 @@ function doAlg(algorithm){
         }
         displayAlgorithmFromHistory(historyIndex);
         cola.length = 0;
-    } else if (tieneConfiguracionDeseada(cola, ["B", "B", "B"]))
+    } else if (tieneConfiguracionDeseada(cola, ["U", "U", "U"]))
     {
 
         if (timerIsRunning){
@@ -570,7 +570,7 @@ function doAlg(algorithm){
 
         displayAlgorithmFromHistory(historyIndex);
         cola.length = 0;
-    } else if (tieneConfiguracionDeseada(cola, ["F", "F", "F"])){
+    } else if (tieneConfiguracionDeseada(cola, ["R'", "R'", "R", "R"])){
         nextScramble();
         cola.length = 0;
     }
