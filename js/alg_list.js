@@ -1274,7 +1274,7 @@ var parity = {
     'parity_C': ["D' R U D R' F' R U R' U' R' F R2 U' R' U' R D' R' D","L U L' U' L F L' U' L U L F' L2 U","U2 D' R' F R2 U' R' U' R U R' F' R U R' U D","U R U' R' U2 L R U' R' U L' U","r2 D r2 U' r2 U r2 U' r2 D r2 U D'","U R2 U' R U R' F' R U R' U' R' F R2 U' R U'","U' x U2 R2 F R F' R U2 r' U L U","U2 R2 U R2 U' R2 D R2 U' R2 U R2 U' D'","U2 D R' F R2 U' R' U' R U R' F' R U R' U D'","R2 D R' U2 R D' R2 U' R U2 L' U R' U' L","U R U' R U R' F' R U R' U' R' F R2 U' R2' U'","R U D' R' F' R U R' U' R' F R2 U' R' U' R D R'","U R' U' R U R’ F’ R U R’ U’ R’ F R2 U’ R’ U’","U D R U' R U R' F' R U R' U' R' F R2 U' R2 U' D'","U2 R' U R U2 L' R' U R U' L","R U D R' F' R U R' U' R' F R2 U' R' U' R D' R'","U R' U R U' x' U L' U L U2 R U' R' U x","U2 R' F R2 U' R' U' R U R' F' R U R' U","R' U2 R U' R' F2 R U2 R U2 R' F2 R' U' R2 U' R'","R U R' F' R U R' U' R' F R2 U' R' U'","U L' U' L F L' U' L U L F' L2 U L"]
 };
 var LTCT = {
-    'LTCT_C': ["R U2 R' U L' U2 R U' R' U2 L U", "R' U' R U D' R U' R U R U' R2 U D", "R U2 R' U' R2 D R' U' R D' R2 U'", "R' U R U' R' U R U R' U' R2 D R' U R D' R' U", "U2 D' R U2 R' D R' U2 R2 U' R2 U' R2 U R' U2", "U2 R D' r U2 r' D R U2 R U R U2", "U2 R' D' R U2 R' D R' U2 R2 U' R2 U' R2 U'", "U R2 U' R' U2 R U' R' U2 R' D' R U R' U' D", "D U2 R' D' R U2 R' D R' U2 R2 U' R2 U' R2 U' D'", "R U' R' D R U2 R U R2 D' L F2 L' U", "R D' R' D R2 U' R' D' R2 D R U D' R' D R2", "U2 D r U2 r' D R U2 R U R2 E2 y2"],
+    'LTCT_C': ["R U2 R' U L' U2 R U' R' U2 L U", "R' U' R U D' R U' R U R U' R2 U D", "R U2 R' U' R2 D R' U' R D' R2 U'", "R' U R U' R' U R U R' U' R2 D R' U R D' R' U", "U2 D' R U2 R' D R' U2 R2 U' R2 U' R2 U R' U2", "U2 R D' r U2 r' D R U2 R U R U2", "U2 R' D' R U2 R' D R' U2 R2 U' R2 U' R2 U'", "U R2 U' R' U2 R U' R' U2 R' D' R U R' U' D", "D U2 R' D' R U2 R' D R' U2 R2 U' R2 U' R2 U' D'", "R U' R' D R U2 R U R2 D' L F2 L' U", "R D' R' D R2 U' R' D' R2 D R U D' R' D R2", "U2 D r U2 r' D R U2 R U R2 E2 y2"]
 };
 
 var ws = {
@@ -1289,14 +1289,14 @@ var ws = {
     '3e-ef_UF-UL-UR': ["U2 R2 U F' R' U2 R U F R' U' R' U2 R' U2", "R F D R2 D' R' F' U R2 U2 R2 U'", "U R2 D' R F U' F' R' F2 R U R' D R2 U", "z U R' U' R U r U' R U' R' U' R U2 r' U' z'", "M U' M' U' M U' M' U2 M U2 M' U'", "R F R S' R' F' R S2 R2 S'", "S U M' U' M U M' U2 M S' U", "U2 R2 S2 U S U' R2 U' S U'"],
     '5_style_edges': ["R' U2 R U' R' U' R U2 R' U R U", "U2 r' U2 R U' R' U' R U2 R' U r U'", "r U R' U2 R U' R' U' R U2 r' U", "U2 R U R' U2 R U' R' U' R U2 R' U'", "U2 L' U2 L U' L' U' L U2 L' U L U'", "R' F2 r U' r' F' r U2 r' F R U", "U2 l U L' U2 L U' L' U' L U2 l' U'", "L U L' U2 L U' L' U' L U2 L' U", "U M' U' M U2 M' U' M2 U' M'", "R2 S' U' S2 U R2 U' S' U", "M' U' M U2 M' U' M U' M' U M", "M' U' M U2 M' U' M S U S' U'", "U M2 U' M2 U' M' U2 M U'", "S2 U' S2 U R2 S' R2 S", "M U2 M' U' M2 U' M2", "S' R2 S' U' S2 U R2"],
     'OPerm_corners': ["U2 R U R' B' R2 D R' U' R D' R2 U f R2 z'", "R' U L U R' D R U2 R' D' R2 U L'", "r U2 R' U' l R U2 R' U' R U2 l' U' r'", "U R U D R D' R' U R D R' U2 D' R'", "U' (F R U' R' U' R U2 R' U' F') (R' U' R U' R U2 R) U", "U x' R U' R' D R U R D' R U R' D R U' R' D' x", "U R U2 R D R2 D2 R U R' D2 R U R D' R2", "U x R2 D2 R U R' D2 R U' R x'", "U R U R' B' R2 D R' U' R D' R2 U f R' z'", "R D R' U R D' R' U R D R' U R D' R' U2", "U R2 F2 R F' R U R2 F2 r U R M U'", "U D' R' D R U R' D' R U R' D R U R' D' R U D", "U2 R U' R U' R' U D R' U R D' R2 U R' U' R", "U R' D R U R' D' R U R' D R U R' D' R U", "R2 U2 R' U D R' U' R U2 R2 U R' U' R2 D' R'", "U D R' D R U R' D' R U R' D R U R' D' R U D'", "R' U2 R U' R' U R' U' R2 U R2 U' D' R' U' R2 U R' D", "U D' R' D' R U R' D R U R' D' R U R' D R U D", "U R' D' R U R' D R U R' D' R U R' D R U", "U D R' D' R U R' D R U R' D' R U R' D R U D'", "R D' R' U R D R' U R D' R' U R D R' U2"],
-    'OPerm_edges': ["S L E2 L' U L E2 L' S'", "S L' E L U L' E' L S'", "S L E' L' U L E L' S'", "S L' E2 L U L' E2 L S'", "U S L' S' U' S U L S'", "L S U S' M' U' L' U M", "L' S U S' M' U' L U M", "U S L S' U' S U L' S'", "U M U M' U'", "U2 S' U S U2", "U' M' U M U", "S U S'", "M2 U2 M U' M U2 M U' M2 U' M", "S L' E' L U L' E L S'", "M' U S U2 S' U M S U S'", "M' U M' U S U S' U M' U M'"],
+    'OPerm_edges': ["S L E2 L' U L E2 L' S'", "S L' E L U L' E' L S'", "S L E' L' U L E L' S'", "S L' E2 L U L' E2 L S'", "U S L' S' U' S U L S'", "L S U S' M' U' L' U M", "L' S U S' M' U' L U M", "U S L S' U' S U L' S'", "U M U M' U'", "U2 S' U S U2", "U' M' U M U", "S U S'", "M2 U2 M U' M U2 M U' M2 U' M", "S L' E' L U L' E L S'", "M' U S U2 S' U M S U S'", "M' U M' U S U S' U M' U M'"]
 };
 
 window.algs = {
     "corners": corners,
     "edges": edges,
     "ct": ct,
-    "EF": EF,
+    "EF": ef,
     "parity": parity,
     "LTCT": parity,
     "WS": ws
