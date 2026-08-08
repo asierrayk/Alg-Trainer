@@ -22,22 +22,22 @@ connectGiiker.addEventListener('click', async () => {
 
     connectGiiker.disabled = true;
     try {
-        const giiker = await connect();
+        const smartCube = await connect();
         connectGiiker.textContent = 'Connected!';
         setVirtualCube(true);
-        giiker.on('move', (move) => {
+        smartCube.on('move', (move) => {
             doAlg(move.notation);
         });
 
-        giiker.on('disconnected', () => {
-            alert("Giiker cube disconnected");
-            connectGiiker.textContent = 'Connect Giiker Cube';
+        smartCube.on('disconnected', () => {
+            alert("Smart cube disconnected");
+            connectGiiker.textContent = 'Connect Smart Cube';
             connectGiiker.disabled = false;
         })
-    
-    } catch(e) {
 
-        connectGiiker.textContent = 'Connect Giiker Cube';
+    } catch(e) {
+        console.error(e);
+        connectGiiker.textContent = 'Connect Smart Cube';
         connectGiiker.disabled = false;
     }
 });

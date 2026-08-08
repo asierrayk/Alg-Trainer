@@ -47,11 +47,13 @@
                         <option value="3x3" default>3x3</option>
                         <option value="2x2">2x2</option>
                     </select><br><br>
-                    <button id="connectGiiker">Connect Giiker Cube</button><br>
+                    <button id="connectGiiker">Connect Smart Cube</button><br>
                     
-                    This feature works with the Giiker Cube i3S and i3SE versions. Rubik's Connect, Gan i and GoCube smart cubes will not work with this site.<br><br>
+                    This feature works with the Giiker Cube i3S and i3SE versions, and with MoYu cubes that appear as WCU_MY32_* (such as the Weilong V10 AI). Rubik's Connect, Gan i and GoCube smart cubes will not work with this site.<br><br>
                     
-                    When a giiker cube is connected, all moves made on the giiker will be reflected on the virtual cube. The giiker cube should be held with white on top and green in front. 
+                    MoYu cubes encrypt their bluetooth data, so you may be asked for the cube's MAC address the first time you connect. You can find it in the WCU Cube app or in your phone's bluetooth settings. It is remembered afterwards.<br><br>
+                    
+                    When a smart cube is connected, all moves made on it will be reflected on the virtual cube. The cube should be solved to start with, and held with white on top and green in front. 
                     <br><br>
                     
                     <input id="userDefined" type="checkbox">Use user defined algset <button id="addSelected">Add currently selected algs</button><br>
@@ -201,6 +203,9 @@
         </div>
 
         <script src="js/giiker.js"></script>
+        <script src="js/aes.js"></script>
+        <script src="js/moyu32.js"></script>
+        <script src="js/smartcube.js"></script>
         <script src="js/cube.js"></script>
         <script src="js/solve.js"></script>
         <script src="js/alg_jison.js"></script>

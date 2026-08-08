@@ -6,7 +6,7 @@ In July 2017, I used this trainer to memorize full ZBLL (493 algorithms) in only
 
 ## Features
 
-- [Giiker Smart Rubik's Cube support](https://www.youtube.com/watch?v=2PWErrApqWQ)
+- [Smart Rubik's Cube support](https://www.youtube.com/watch?v=2PWErrApqWQ) - Giiker i3S/i3SE, and MoYu cubes using the WCU_MY32 protocol such as the Weilong V10 AI
 - Supports PLL, OLL, F2L, COLL, WV, ZBLL, 2GLL, ZZLL, ZBLS, CLS, TTLL, CMLL, TOLS, CLL, CPEOLL, OLLCP, and much, much more. 
 - Train algsets by their subsets - for example, you can train the T, U, L, Pi, H, S and AS subsets of ZBLL separately.
 - Features a timer for timing your algorithms.

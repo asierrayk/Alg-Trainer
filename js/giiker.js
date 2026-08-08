@@ -130,22 +130,7 @@ class Giiker extends EventEmitter {
     this._onDisconnected = this._onDisconnected.bind(this);
   }
 
-  async connect() {
-    if (!window.navigator) {
-      throw new Error('window.navigator is not accesible. Maybe you\'re running Node.js?');
-    }
-
-    if (!window.navigator.bluetooth) {
-      throw new Error('Web Bluetooth API is not accesible');
-    }
-
-    const device = await window.navigator.bluetooth.requestDevice({
-      filters: [{
-        namePrefix: 'Gi',
-      }],
-      optionalServices: [SERVICE_UUID, SYSTEM_SERVICE_UUID],
-    });
-
+  async connect(device) {
     const server = await device.gatt.connect();
     const service = await server.getPrimaryService(SERVICE_UUID);
     const characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
@@ -445,8 +430,13 @@ class Giiker extends EventEmitter {
   }
 }
 
-const connect = async () => {
+// Device selection lives in smartcube.js so that a single chooser can offer more
+// than one make of cube.
+const GIIKER_NAME_PREFIX = 'Gi';
+const GIIKER_SERVICE_UUIDS = [SERVICE_UUID, SYSTEM_SERVICE_UUID];
+
+const connectGiikerCube = async (device) => {
   const giiker = new Giiker();
-  await giiker.connect();
+  await giiker.connect(device);
   return giiker;
 };
