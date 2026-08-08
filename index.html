@@ -32,7 +32,10 @@
                     <button type="button" onclick="nextScramble()">Next Scramble</button>
                 </div>
 
-                <button id="openSettings" type="button" title="Settings" aria-label="Settings">&#9881;</button>
+                <div id="stageButtons">
+                    <button id="connectGiiker" type="button" title="Connect a smart cube over bluetooth">Connect Cube</button>
+                    <button id="openSettings" type="button" title="Settings" aria-label="Settings">&#9881;</button>
+                </div>
 
             </main>
 
@@ -60,7 +63,7 @@
 
                     <details>
                         <summary>Smart cube</summary>
-                        <button id="connectGiiker" type="button">Connect Smart Cube</button>
+                        <p class="hint">Use the <b>Connect Cube</b> button at the top of the screen. It turns green once a cube is connected, and you can open these settings without losing the connection.</p>
                         <p class="hint">Works with the Giiker Cube i3S and i3SE versions, and with MoYu cubes that appear as WCU_MY32_* (such as the Weilong V10 AI). Rubik's Connect, Gan i and GoCube smart cubes will not work with this site.</p>
                         <p class="hint">MoYu cubes encrypt their bluetooth data, so you may be asked for the cube's MAC address the first time you connect. You can find it in the WCU Cube app or in your phone's bluetooth settings. It is remembered afterwards.</p>
                         <p class="hint">When a smart cube is connected, all moves made on it will be reflected on the virtual cube. The cube should be solved to start with, and held in the orientation you set under Cube &amp; orientation. Web Bluetooth needs Chrome or Edge - on a phone that means Android; iOS cannot connect.</p>

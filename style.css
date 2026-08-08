@@ -53,14 +53,15 @@ a:visited {
     align-items: center;
     height: 100vh;
     height: 100dvh;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    /* top band keeps #stageButtons clear of the scramble at every width */
+    padding: calc(52px + env(safe-area-inset-top)) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     box-sizing: border-box;
     overflow: hidden;
 }
 
 p.scramble {
     flex: none;
-    margin: 0.4em 3.5em 0.2em 0.5em; /* room for the settings button */
+    margin: 0.4em 0.5em 0.2em 0.5em;
     text-align: center;
     font-size: clamp(15px, 3.5vw, 24px);
     word-break: break-word;
@@ -131,19 +132,44 @@ p.algdisp {
     cursor: pointer;
 }
 
-#openSettings {
+#stageButtons {
     position: fixed;
     top: 0.4em;
     right: 0.4em;
-    width: 44px;
+    display: flex;
+    gap: 0.4em;
+    z-index: 2;
+}
+
+#stageButtons > button {
     height: 44px;
-    font-size: 24px;
-    line-height: 1;
     background: transparent;
     color: white;
     border: 1px solid #444;
     border-radius: 6px;
     cursor: pointer;
+    line-height: 1;
+}
+
+#openSettings {
+    width: 44px;
+    font-size: 24px;
+}
+
+#connectGiiker {
+    padding: 0 0.9em;
+    font-size: 15px;
+    white-space: nowrap;
+}
+
+#connectGiiker.connected {
+    color: #6ee36e;
+    border-color: #6ee36e;
+}
+
+#connectGiiker:disabled {
+    cursor: default;
+    opacity: 0.85;
 }
 
 
@@ -370,6 +396,13 @@ body.standalone-editor select {
             "cube scramble"
             "cube hud";
         align-items: start;
+        /* the cube column spans both rows, so shifting the scramble down for the buttons
+           costs the HUD row height, not the cube */
+        padding-top: env(safe-area-inset-top);
+    }
+
+    #stage > p.scramble {
+        margin-top: 52px;
     }
 
     #simcube {

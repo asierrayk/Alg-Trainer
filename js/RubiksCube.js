@@ -57,9 +57,10 @@ var connectGiiker = document.getElementById("connectGiiker");
 connectGiiker.addEventListener('click', async () => {
 
     connectGiiker.disabled = true;
+    setConnectButton('Connecting...', false);
     try {
         const smartCube = await connect();
-        connectGiiker.textContent = 'Connected!';
+        setConnectButton('Connected', true);
         setVirtualCube(true);
         smartCube.on('move', (move) => {
             doAlg(remapSmartCubeMove(move.notation, smartCube.nativeOrientation));
@@ -67,16 +68,24 @@ connectGiiker.addEventListener('click', async () => {
 
         smartCube.on('disconnected', () => {
             alert("Smart cube disconnected");
-            connectGiiker.textContent = 'Connect Smart Cube';
+            setConnectButton('Connect Cube', false);
             connectGiiker.disabled = false;
         })
 
     } catch(e) {
         console.error(e);
-        connectGiiker.textContent = 'Connect Smart Cube';
+        setConnectButton('Connect Cube', false);
         connectGiiker.disabled = false;
     }
 });
+
+//The button sits on the stage next to the settings gear, so it stays reachable mid-session.
+//Green means a cube is on the other end.
+function setConnectButton(label, connected){
+    connectGiiker.textContent = label;
+    connectGiiker.classList.toggle('connected', connected);
+    connectGiiker.title = connected ? 'Smart cube connected' : 'Connect a smart cube over bluetooth';
+}
 
 document.getElementById("loader").style.display = "none";
 var myVar = setTimeout(showPage, 1);
