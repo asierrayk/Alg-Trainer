@@ -1,6 +1,8 @@
 var currentRotation = "";
 var cube = new RubiksCube();
-const cola = []; // Almacena los ultimos 4 movimientos
+var gestures = getGestures();//See js/gestures.js
+var longestGesture = Math.max(1, ...gestures.map(gesture => gestureToMoves(gesture[0]).length));
+var moveBuffer = [];//The most recent moves, for matching against gestures
 var currentAlgorithm = "";//After an alg gets tested for the first time, it becomes the currentAlgorithm.
 var currentScramble = "";
 var algArr;//This is the array of alternatives to currentAlgorithm
@@ -508,77 +510,62 @@ function drawCube(cubeArray) {
     }
 }
 
-function tieneConfiguracionDeseada(cola, configuracion) {
-    if (cola.length !== configuracion.length) {
-      return false;
+function runGestureAction(action){
+    switch (action){
+        case "showSolution":
+            stopTimer();
+            displayAlgorithmForPreviousTest();
+            break;
+        case "nextCase":
+            showNextCase();
+            break;
+        case "previousCase":
+            showPreviousCase();
+            break;
+        case "nextScramble":
+            nextScramble();
+            break;
     }
-  
-    for (let i = 0; i < cola.length; i++) {
-      if (cola[i] !== configuracion[i]) {
-        return false;
-      }
-    }
-  
-    return true;
-  }
+}
 
-function enqueue(element) {
-    cola.push(element);
-  
-    // Si la cola tiene más de tres elementos, eliminar el primero
-    if (cola.length > 4) {
-      cola.shift();
+//Fire the first gesture whose move sequence matches the end of the buffer.
+function checkGestures(){
+    for (var i = 0; i < gestures.length; i++){
+        var moves = gestureToMoves(gestures[i][0]);
+        if (moves.length === 0 || moves.length > moveBuffer.length){
+            continue;
+        }
+        var tail = moveBuffer.slice(-moves.length);
+        if (tail.every((move, j) => move === moves[j])){
+            //Clear before acting: the action turns the cube itself, which re-enters doAlg
+            moveBuffer.length = 0;
+            runGestureAction(gestures[i][1]);
+            return;
+        }
     }
-  }
+}
 
 function doAlg(algorithm){
-    enqueue(algorithm);
+    //Only moves the user actually made count towards a gesture. doAlg is also
+    //called with whole scrambles and algorithms, which reset the buffer instead.
+    if (gestureToMoves(algorithm).length === 1){
+        moveBuffer.push(algorithm.trim());
+        while (moveBuffer.length > longestGesture){
+            moveBuffer.shift();
+        }
+    } else {
+        moveBuffer.length = 0;
+    }
 
     cube.doAlgorithm(algorithm);
     drawCube(cube.cubestate);
 
-    if (tieneConfiguracionDeseada(cola, ["U", "U", "U'", "U'"])){
-        stopTimer();
-        displayAlgorithmForPreviousTest();
-        cola.length = 0;
-    } else if (tieneConfiguracionDeseada(cola, ["U'", "U'", "U'", "U'"]))
-    {
-
-        if (algorithmHistory.length<=1 || timerIsRunning){
-            return;
-        }
-        historyIndex--;
-
-        if (historyIndex<0){
-            alert('Reached end of solve log');
-            historyIndex = 0;
-        }
-        displayAlgorithmFromHistory(historyIndex);
-        cola.length = 0;
-    } else if (tieneConfiguracionDeseada(cola, ["U", "U", "U", "U"]))
-    {
-
-        if (timerIsRunning){
-            return;
-        }
-        historyIndex++;
-        if (historyIndex>=algorithmHistory.length){
-            nextScramble();
-            doNothingNextTimeSpaceIsPressed = false;
-            return;
-        }
-
-        displayAlgorithmFromHistory(historyIndex);
-        cola.length = 0;
-    } else if (tieneConfiguracionDeseada(cola, ["R'", "R'", "R", "R"])){
-        nextScramble();
-        cola.length = 0;
-    }
+    checkGestures();
 
     if (timerIsRunning && cube.isSolved() && isUsingVirtualCube()){
         stopTimer();
         nextScramble();
-        cola.length = 0;
+        moveBuffer.length = 0;
     }
 }
 
@@ -1418,31 +1405,37 @@ function updateControls() {
         nextScramble();
         doNothingNextTimeSpaceIsPressed = false;
     });
-    listener.register(new KeyCombo("ArrowLeft"), function() {
-        if (algorithmHistory.length<=1 || timerIsRunning){
-            return;
-        }
-        historyIndex--;
+    listener.register(new KeyCombo("ArrowLeft"), showPreviousCase);
+    listener.register(new KeyCombo("ArrowRight"), showNextCase);
+}
 
-        if (historyIndex<0){
-            alert('Reached end of solve log');
-            historyIndex = 0;
-        }
-        displayAlgorithmFromHistory(historyIndex);
-    });
-    listener.register(new KeyCombo("ArrowRight"), function() {
-        if (timerIsRunning){
-            return;
-        }
-        historyIndex++;
-        if (historyIndex>=algorithmHistory.length){
-            nextScramble();
-            doNothingNextTimeSpaceIsPressed = false;
-            return;
-        }
+//Step back through the solve log. Also bound to a cube gesture, see js/gestures.js
+function showPreviousCase(){
+    if (algorithmHistory.length<=1 || timerIsRunning){
+        return;
+    }
+    historyIndex--;
 
-        displayAlgorithmFromHistory(historyIndex);
-    });
+    if (historyIndex<0){
+        alert('Reached end of solve log');
+        historyIndex = 0;
+    }
+    displayAlgorithmFromHistory(historyIndex);
+}
+
+//Step forward through the solve log, generating a new case once past the end.
+function showNextCase(){
+    if (timerIsRunning){
+        return;
+    }
+    historyIndex++;
+    if (historyIndex>=algorithmHistory.length){
+        nextScramble();
+        doNothingNextTimeSpaceIsPressed = false;
+        return;
+    }
+
+    displayAlgorithmFromHistory(historyIndex);
 }
 
 setInterval(updateControls, 300);
