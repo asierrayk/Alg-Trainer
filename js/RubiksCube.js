@@ -29,7 +29,7 @@ connectGiiker.addEventListener('click', async () => {
         connectGiiker.textContent = 'Connected!';
         setVirtualCube(true);
         smartCube.on('move', (move) => {
-            doAlg(move.notation);
+            doAlg(remapSmartCubeMove(move.notation, smartCube.nativeOrientation));
         });
 
         smartCube.on('disconnected', () => {
@@ -60,6 +60,8 @@ var defaults = {"useVirtual":true,
                 "goInOrder":false,
                 "goToNextCase":false,
                 "mirrorAllAlgs":false,
+                "cubeOrientationF":"green",
+                "cubeOrientationU":"yellow",
                 "colourneutrality1":"",
                 "colourneutrality2":"",
                 "colourneutrality3":"",
@@ -68,17 +70,29 @@ var defaults = {"useVirtual":true,
                 "fullCN":false,
                 "cubeType":"3x3",
                 "algsetpicker":document.getElementById("algsetpicker").options[0].value,
-                "useCustomColourScheme":true,
-                "customColourU":"yellow",
-                "customColourD":"white",
+                "useCustomColourScheme":false,
+                "customColourU":"white",
+                "customColourD":"yellow",
                 "customColourF":"green",
                 "customColourB":"blue",
-                "customColourR":"orange",
-                "customColourL":"red",
+                "customColourR":"red",
+                "customColourL":"orange",
                 "visualCubeView":"plan"
                };
 
-for (var setting in defaults){ 
+//The custom colour scheme used to be a z2 relabelling, to match a restickered cube. That job now
+//belongs to the cube orientation setting, so clear the old values once and let them reseed.
+var SETTINGS_VERSION = "2";
+if (localStorage.getItem("settingsVersion") !== SETTINGS_VERSION){
+    var staleSettings = ["useCustomColourScheme", "customColourU", "customColourD",
+                         "customColourR", "customColourL"];
+    for (var i = 0; i < staleSettings.length; i++){
+        localStorage.removeItem(staleSettings[i]);
+    }
+    localStorage.setItem("settingsVersion", SETTINGS_VERSION);
+}
+
+for (var setting in defaults){
 // If no previous setting exists, use default and update localStorage. Otherwise, set to previous setting
     if (typeof(defaults[setting]) === "boolean"){
         var previousSetting = localStorage.getItem(setting);
@@ -114,8 +128,22 @@ if (document.getElementById("userDefined").checked){
 }
 
 document.getElementById("lines").addEventListener("change", function(){
-    drawCube(cube.cubestate);    
+    drawCube(cube.cubestate);
 });
+
+//Changing how you hold the cube re-orients the case you are on, so the trainer keeps
+//matching the cube in your hands.
+var cubeOrientations = [document.getElementById("cubeOrientationF"),
+                        document.getElementById("cubeOrientationU")];
+
+for (var i = 0; i < cubeOrientations.length; i++) {
+    cubeOrientations[i].addEventListener("change", function(){
+        localStorage.setItem(this.id, this.value);
+        practiceOrientation();//Warns and falls back if the pair is not a real orientation
+        //Like the algset picker, this takes effect from the next case onwards
+        nextScramble();
+    });
+}
 
 var useCustomColourScheme = document.getElementById("useCustomColourScheme");
 useCustomColourScheme.addEventListener("click", function(){
@@ -740,8 +768,108 @@ function generatePreScramble(raw_alg, generator, times, obfusticateAlg, premoves
     }
 
 }
+//Sticker values as used by fillWithIndex: 1=U 2=R 3=F 4=D 5=L 6=B on the standard scheme.
+//Centre positions in cubestate: u=4 r=13 f=22 d=31 l=40 b=49 (see wcaOrient)
+var stickerColours = {1:"white", 2:"red", 3:"green", 4:"yellow", 5:"orange", 6:"blue"};
+var centreIndices = {"U":4, "R":13, "F":22, "D":31, "L":40, "B":49};
+
+//Every rotation of the cube, reached the same way generateOrientation does for full CN below.
+function eachOrientation(callback){
+    var firstRotation = ["", "x", "x'", "x2", "y", "y'"];
+    var secondRotation = ["", "z", "z'", "z2"];
+    for (var i = 0; i < firstRotation.length; i++){
+        for (var j = 0; j < secondRotation.length; j++){
+            var rotation = firstRotation[i] + secondRotation[j];
+            if (rotation == "x2z2"){
+                rotation = "y2";
+            }
+            var probe = new RubiksCube();
+            probe.doAlgorithm(rotation);
+            callback(rotation, probe);
+        }
+    }
+}
+
+//"green|yellow" -> the rotation reaching that orientation from white top, green front.
+var orientationRotations = (function(){
+    var table = {};
+    eachOrientation(function(rotation, probe){
+        var key = stickerColours[probe.cubestate[centreIndices["F"]]] + "|" +
+                  stickerColours[probe.cubestate[centreIndices["U"]]];
+        if (!(key in table)){
+            table[key] = rotation;
+        }
+    });
+    return table;
+})();
+
+//Which face each face ends up as under a rotation. "z2" -> {U:"D", R:"L", F:"F", D:"U", L:"R", B:"B"}
+function faceMapForRotation(rotation){
+    var probe = new RubiksCube();
+    probe.doAlgorithm(rotation);
+    var map = {};
+    for (var face in centreIndices){
+        //The sticker now sitting on `face` started on the face named by its value, so the
+        //face it started on has moved here.
+        var startedOn;
+        switch (probe.cubestate[centreIndices[face]]){
+            case 1: startedOn = "U"; break;
+            case 2: startedOn = "R"; break;
+            case 3: startedOn = "F"; break;
+            case 4: startedOn = "D"; break;
+            case 5: startedOn = "L"; break;
+            case 6: startedOn = "B"; break;
+        }
+        map[startedOn] = face;
+    }
+    return map;
+}
+
+//The orientation the user holds the cube in, as a rotation from white top, green front.
+function practiceOrientation(){
+    var front = document.getElementById("cubeOrientationF").value;
+    var top = document.getElementById("cubeOrientationU").value;
+    var rotation = orientationRotations[front + "|" + top];
+    if (rotation === undefined){
+        //Equal or opposite colours describe no real orientation
+        alert("A cube cannot have " + front + " in front and " + top + " on top. Using " +
+              defaults["cubeOrientationF"] + " front, " + defaults["cubeOrientationU"] + " top.");
+        document.getElementById("cubeOrientationF").value = defaults["cubeOrientationF"];
+        document.getElementById("cubeOrientationU").value = defaults["cubeOrientationU"];
+        localStorage.setItem("cubeOrientationF", defaults["cubeOrientationF"]);
+        localStorage.setItem("cubeOrientationU", defaults["cubeOrientationU"]);
+        rotation = orientationRotations[defaults["cubeOrientationF"] + "|" + defaults["cubeOrientationU"]];
+    }
+    return rotation;
+}
+
+//A smart cube names its faces in its own frame, which is fixed by how it is stickered. Held in a
+//different orientation, the face the user turns is not the face the cube reports, so relabel it.
+var smartCubeFaceMaps = {};
+
+function remapSmartCubeMove(notation, nativeOrientation){
+    var practice = practiceOrientation();
+    var native = orientationRotations[nativeOrientation];
+    if (native === undefined){
+        //Unknown cube - assume it is held the way it is stickered
+        return notation;
+    }
+
+    var key = nativeOrientation + "->" + practice;
+    if (!(key in smartCubeFaceMaps)){
+        //Undo the cube's own orientation, then take up the user's
+        smartCubeFaceMaps[key] = faceMapForRotation(alg.cube.invert(native) + practice);
+    }
+
+    var face = notation.charAt(0);
+    var remapped = smartCubeFaceMaps[key][face];
+    return remapped === undefined ? notation : remapped + notation.slice(1);
+}
+
 function generateOrientation(){
 
+    //How the user holds the cube. Everything else is stacked on top of this.
+    var base = practiceOrientation();
 
     var cn1 = document.getElementById("colourneutrality1").value;
     if (document.getElementById("fullCN").checked){
@@ -759,7 +887,7 @@ function generateOrientation(){
         if (randomPart == "x2z2"){
             randomPart = "y2";
         }
-        var fullOrientation = cn1 + randomPart; // Preorientation to perform starting from white top green front
+        var fullOrientation = base + cn1 + randomPart; // Preorientation to perform starting from white top green front
         return [fullOrientation, randomPart];
     }
     var cn2 = document.getElementById("colourneutrality2").value;
@@ -776,7 +904,7 @@ function generateOrientation(){
 
     //console.log(cn1 + cn2.repeat(rand1) + cn3.repeat(rand2));
     var randomPart = cn2.repeat(rand1) + cn3.repeat(rand2); // Random part of the orientation
-    var fullOrientation = cn1 + randomPart; // Preorientation to perform starting from white top green front
+    var fullOrientation = base + cn1 + randomPart; // Preorientation to perform starting from white top green front
     return [fullOrientation, randomPart];
 }
 
@@ -907,7 +1035,7 @@ function reTestAlg(){
         return;
     }
     cube.resetCube();
-    //doAlg(lastTest.preorientation);
+    doAlg(lastTest.preorientation);
     doAlg(lastTest.scramble);
     drawCube(cube.cubestate);
 
@@ -998,7 +1126,7 @@ function updateVisualCube(algorithm){
 
     var view = localStorage.getItem("visualCubeView");
 
-	var imgsrc = "https://www.cubing.net/api/visualcube/?fmt=svg&size=300&view=" + view + "&bg=black&pzl=" + pzl + "&alg=x2" + algorithm + "x2";
+    var imgsrc = "https://www.cubing.net/api/visualcube/?fmt=svg&size=300&view=" + view + "&bg=black&pzl=" + pzl + "&alg=x2" + algorithm;
 
     if (useCustomColourScheme.checked){
         validateCustomColourScheme();

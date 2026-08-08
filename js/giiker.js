@@ -435,8 +435,13 @@ class Giiker extends EventEmitter {
 const GIIKER_NAME_PREFIX = 'Gi';
 const GIIKER_SERVICE_UUIDS = [SERVICE_UUID, SYSTEM_SERVICE_UUID];
 
+// The colours this cube has in front and on top when it reports a solved state, i.e. the frame
+// its face names are relative to. This one is restickered: green front puts yellow up.
+const GIIKER_NATIVE_ORIENTATION = 'green|yellow';
+
 const connectGiikerCube = async (device) => {
   const giiker = new Giiker();
   await giiker.connect(device);
+  giiker.nativeOrientation = GIIKER_NATIVE_ORIENTATION;
   return giiker;
 };

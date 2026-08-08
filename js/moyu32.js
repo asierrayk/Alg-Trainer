@@ -456,9 +456,14 @@ window.MOYU32_SERVICE_UUID = MOYU32_SERVICE_UUID;
 window.MOYU32_NAME_PREFIX = MOYU32_NAME_PREFIX;
 window.moyu32CompanyIds = moyu32CompanyIds;
 
+// The colours this cube has in front and on top when it reports a solved state, i.e. the frame
+// its face names are relative to. Standard stickering: green front puts white up.
+const MOYU32_NATIVE_ORIENTATION = 'green|white';
+
 window.connectMoyu32 = async (device) => {
   const moyu32 = new Moyu32();
   await moyu32.connect(device);
+  moyu32.nativeOrientation = MOYU32_NATIVE_ORIENTATION;
   return moyu32;
 };
 

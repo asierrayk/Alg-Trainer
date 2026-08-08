@@ -52,11 +52,34 @@
                     
                     MoYu cubes encrypt their bluetooth data, so you may be asked for the cube's MAC address the first time you connect. You can find it in the WCU Cube app or in your phone's bluetooth settings. It is remembered afterwards.<br><br>
                     
-                    When a smart cube is connected, all moves made on it will be reflected on the virtual cube. The cube should be solved to start with, and held with white on top and green in front. 
+                    When a smart cube is connected, all moves made on it will be reflected on the virtual cube. The cube should be solved to start with, and held in the orientation you set under Cube orientation below. 
                     <br><br>
                     
                     <input id="userDefined" type="checkbox">Use user defined algset <button id="addSelected">Add currently selected algs</button><br>
                     <textarea id="userDefinedAlgs" cols=50 rows=50 style="display:none" onfocus="listener.stop_listening();" onblur="listener.listen();" placeholder="Place one alg per line. Lines starting with # will be ignored"></textarea>
+                    <br>
+
+                    Cube orientation: <br>
+                    I hold the cube with
+                    <select id="cubeOrientationF">
+                        <option value="white"> white </option>
+                        <option value="yellow"> yellow </option>
+                        <option value="green"> green </option>
+                        <option value="blue"> blue </option>
+                        <option value="red"> red </option>
+                        <option value="orange"> orange </option>
+                    </select>
+                    in front and
+                    <select id="cubeOrientationU">
+                        <option value="white"> white </option>
+                        <option value="yellow"> yellow </option>
+                        <option value="green"> green </option>
+                        <option value="blue"> blue </option>
+                        <option value="red"> red </option>
+                        <option value="orange"> orange </option>
+                    </select>
+                    on top.<br>
+                    Cases are oriented to match, so the virtual cube looks like the one in your hands.<br>
                     <br>
 
                     Preorientation: <br>

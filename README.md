@@ -8,6 +8,7 @@ In July 2017, I used this trainer to memorize full ZBLL (493 algorithms) in only
 
 - [Smart Rubik's Cube support](https://www.youtube.com/watch?v=2PWErrApqWQ) - Giiker i3S/i3SE, and MoYu cubes using the WCU_MY32 protocol such as the Weilong V10 AI
 - Cube gestures - turn the cube itself to show the solution, change case, or get a new scramble, so you never have to put it down to reach the keyboard. The four defaults (`U U U' U'`, `U U U U`, `U' U' U' U'`, `R' R' R R`) all leave the cube untouched, and they can be rebound from the gesture config page.
+- Cube orientation - tell the trainer which colours you hold in front and on top, and every case is oriented to match, so the virtual cube looks like the one in your hands. A connected smart cube names its faces in its own frame, so its moves are relabelled into your orientation too - which means a restickered cube and a standard one both behave correctly without changing how you hold either.
 - Supports PLL, OLL, F2L, COLL, WV, ZBLL, 2GLL, ZZLL, ZBLS, CLS, TTLL, CMLL, TOLS, CLL, CPEOLL, OLLCP, blindfolded 3-style (corners, edges, parity, floating pieces), and much, much more. 
 - Train algsets by their subsets - for example, you can train the T, U, L, Pi, H, S and AS subsets of ZBLL separately.
 - Features a timer for timing your algorithms.
