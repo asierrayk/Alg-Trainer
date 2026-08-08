@@ -1,11 +1,12 @@
 var currentRotation = "";
 var cube = new RubiksCube();
+const cola = []; // Almacena los ultimos 4 movimientos
 var currentAlgorithm = "";//After an alg gets tested for the first time, it becomes the currentAlgorithm.
 var currentScramble = "";
 var algArr;//This is the array of alternatives to currentAlgorithm
 var canvas = document.getElementById("cube");
 var ctx = canvas.getContext("2d");
-var stickerSize = canvas.width/5;
+var stickerSize = canvas.width/9;
 var currentAlgIndex = 0;
 var algorithmHistory = [];
 var shouldRecalculateStatistics = true;
@@ -48,30 +49,30 @@ function showPage(){
     document.getElementById("page").style.display = "block";
 }
 
-var defaults = {"useVirtual":false,
-                "hideTimer":false,
+var defaults = {"useVirtual":true,
+                "hideTimer":true,
                 "showScramble":true,
-                "realScrambles":true,
-                "randAUF":true,
+                "realScrambles":false,
+                "randAUF":false,
                 "prescramble":true,
                 "goInOrder":false,
                 "goToNextCase":false,
                 "mirrorAllAlgs":false,
                 "colourneutrality1":"",
-                "colourneutrality2":"x2",
-                "colourneutrality3":"y",
+                "colourneutrality2":"",
+                "colourneutrality3":"",
                 "userDefined":false,
                 "userDefinedAlgs":"",
                 "fullCN":false,
                 "cubeType":"3x3",
                 "algsetpicker":document.getElementById("algsetpicker").options[0].value,
-                "useCustomColourScheme":false,
-                "customColourU":"white",
-                "customColourD":"yellow",
+                "useCustomColourScheme":true,
+                "customColourU":"yellow",
+                "customColourD":"white",
                 "customColourF":"green",
                 "customColourB":"blue",
-                "customColourR":"red",
-                "customColourL":"orange",
+                "customColourR":"orange",
+                "customColourL":"red",
                 "visualCubeView":"plan"
                };
 
@@ -431,41 +432,52 @@ function drawCube(cubeArray) {
         fillWithIndex(3, 5, "r", 7, cubeArray);
 
     }else{
-        fillWithIndex(0, 0, "l", 1, cubeArray);
-        fillWithIndex(1, 0, "u", 1, cubeArray);
-        fillWithIndex(2, 0, "u", 2, cubeArray);
-        fillWithIndex(3, 0, "u", 3, cubeArray);
-        fillWithIndex(4, 0, "r", 3, cubeArray);
-
-        fillWithIndex(0, 1, "l", 2, cubeArray);
-        fillWithIndex(1, 1, "u", 4, cubeArray);
-        fillWithIndex(2, 1, "u", 5, cubeArray);
-        fillWithIndex(3, 1, "u", 6, cubeArray);
-        fillWithIndex(4, 1, "r", 2, cubeArray);
-
-        fillWithIndex(0, 2, "l", 3, cubeArray);
-        fillWithIndex(1, 2, "u", 7, cubeArray);
-        fillWithIndex(2, 2, "u", 8, cubeArray);
-        fillWithIndex(3, 2, "u", 9, cubeArray);
-        fillWithIndex(4, 2, "r", 1, cubeArray);
-
-        fillWithIndex(0, 3, "l", 3, cubeArray);
-        fillWithIndex(1, 3, "f", 1, cubeArray);
-        fillWithIndex(2, 3, "f", 2, cubeArray);
-        fillWithIndex(3, 3, "f", 3, cubeArray);
-        fillWithIndex(4, 3, "r", 1, cubeArray);
-
-        fillWithIndex(0, 4, "l", 6, cubeArray);
-        fillWithIndex(1, 4, "f", 4, cubeArray);
-        fillWithIndex(2, 4, "f", 5, cubeArray);
-        fillWithIndex(3, 4, "f", 6, cubeArray);
-        fillWithIndex(4, 4, "r", 4, cubeArray);
-
-        fillWithIndex(0, 5, "l", 9, cubeArray);
-        fillWithIndex(1, 5, "f", 7, cubeArray);
-        fillWithIndex(2, 5, "f", 8, cubeArray);
-        fillWithIndex(3, 5, "f", 9, cubeArray);
-        fillWithIndex(4, 5, "r", 7, cubeArray);
+        fillWithIndex(2+0, 0, "l", 1, cubeArray);
+        fillWithIndex(2+1, 0, "u", 1, cubeArray);
+        fillWithIndex(2+2, 0, "u", 2, cubeArray);
+        fillWithIndex(2+3, 0, "u", 3, cubeArray);
+        fillWithIndex(2+4, 0, "r", 3, cubeArray);
+					  
+        fillWithIndex(2+0, 1, "l", 2, cubeArray);
+        fillWithIndex(2+1, 1, "u", 4, cubeArray);
+        fillWithIndex(2+2, 1, "u", 5, cubeArray);
+        fillWithIndex(2+3, 1, "u", 6, cubeArray);
+        fillWithIndex(2+4, 1, "r", 2, cubeArray);
+					  
+        fillWithIndex(2+0, 2, "l", 3, cubeArray);
+        fillWithIndex(2+1, 2, "u", 7, cubeArray);
+        fillWithIndex(2+2, 2, "u", 8, cubeArray);
+        fillWithIndex(2+3, 2, "u", 9, cubeArray);
+        fillWithIndex(2+4, 2, "r", 1, cubeArray);
+					  
+        fillWithIndex(2+0, 3, "l", 3, cubeArray);
+        fillWithIndex(2+1, 3, "f", 1, cubeArray);
+        fillWithIndex(2+2, 3, "f", 2, cubeArray);
+        fillWithIndex(2+3, 3, "f", 3, cubeArray);
+        fillWithIndex(2+4, 3, "r", 1, cubeArray);
+					  
+        fillWithIndex(2+0, 4, "l", 6, cubeArray);
+        fillWithIndex(2+1, 4, "f", 4, cubeArray);
+        fillWithIndex(2+2, 4, "f", 5, cubeArray);
+        fillWithIndex(2+3, 4, "f", 6, cubeArray);
+        fillWithIndex(2+4, 4, "r", 4, cubeArray);
+					  
+        fillWithIndex(2+0, 5, "l", 9, cubeArray);
+        fillWithIndex(2+1, 5, "f", 7, cubeArray);
+        fillWithIndex(2+2, 5, "f", 8, cubeArray);
+        fillWithIndex(2+3, 5, "f", 9, cubeArray);
+        fillWithIndex(2+4, 5, "r", 7, cubeArray);
+		
+		fillWithIndex(0, 4, "l", 4, cubeArray);
+		fillWithIndex(1, 4, "l", 5, cubeArray);
+		fillWithIndex(0, 5, "l", 7, cubeArray);
+		fillWithIndex(1, 5, "l", 8, cubeArray);
+		
+		
+		fillWithIndex(7, 4, "r", 5, cubeArray);
+		fillWithIndex(8, 4, "r", 6, cubeArray);
+		fillWithIndex(7, 5, "r", 8, cubeArray);
+		fillWithIndex(8, 5, "r", 9, cubeArray);
 
         let lineValue = document.getElementById("lines").value;
         if (lineValue === "none") return;
@@ -496,13 +508,77 @@ function drawCube(cubeArray) {
     }
 }
 
+function tieneConfiguracionDeseada(cola, configuracion) {
+    if (cola.length !== configuracion.length) {
+      return false;
+    }
+  
+    for (let i = 0; i < cola.length; i++) {
+      if (cola[i] !== configuracion[i]) {
+        return false;
+      }
+    }
+  
+    return true;
+  }
+
+function enqueue(element) {
+    cola.push(element);
+  
+    // Si la cola tiene más de tres elementos, eliminar el primero
+    if (cola.length > 4) {
+      cola.shift();
+    }
+  }
 
 function doAlg(algorithm){
+    enqueue(algorithm);
+
     cube.doAlgorithm(algorithm);
     drawCube(cube.cubestate);
 
+    if (tieneConfiguracionDeseada(cola, ["U", "U", "U'", "U'"])){
+        stopTimer();
+        displayAlgorithmForPreviousTest();
+        cola.length = 0;
+    } else if (tieneConfiguracionDeseada(cola, ["U'", "U'", "U'", "U'"]))
+    {
+
+        if (algorithmHistory.length<=1 || timerIsRunning){
+            return;
+        }
+        historyIndex--;
+
+        if (historyIndex<0){
+            alert('Reached end of solve log');
+            historyIndex = 0;
+        }
+        displayAlgorithmFromHistory(historyIndex);
+        cola.length = 0;
+    } else if (tieneConfiguracionDeseada(cola, ["U", "U", "U", "U"]))
+    {
+
+        if (timerIsRunning){
+            return;
+        }
+        historyIndex++;
+        if (historyIndex>=algorithmHistory.length){
+            nextScramble();
+            doNothingNextTimeSpaceIsPressed = false;
+            return;
+        }
+
+        displayAlgorithmFromHistory(historyIndex);
+        cola.length = 0;
+    } else if (tieneConfiguracionDeseada(cola, ["R'", "R'", "R", "R"])){
+        nextScramble();
+        cola.length = 0;
+    }
+
     if (timerIsRunning && cube.isSolved() && isUsingVirtualCube()){
         stopTimer();
+        nextScramble();
+        cola.length = 0;
     }
 }
 
@@ -844,7 +920,7 @@ function reTestAlg(){
         return;
     }
     cube.resetCube();
-    doAlg(lastTest.preorientation);
+    //doAlg(lastTest.preorientation);
     doAlg(lastTest.scramble);
     drawCube(cube.cubestate);
 
@@ -935,7 +1011,7 @@ function updateVisualCube(algorithm){
 
     var view = localStorage.getItem("visualCubeView");
 
-    var imgsrc = "https://www.cubing.net/api/visualcube/?fmt=svg&size=300&view=" + view + "&bg=black&pzl=" + pzl + "&alg=x2" + algorithm;
+	var imgsrc = "https://www.cubing.net/api/visualcube/?fmt=svg&size=300&view=" + view + "&bg=black&pzl=" + pzl + "&alg=x2" + algorithm + "x2";
 
     if (useCustomColourScheme.checked){
         validateCustomColourScheme();
