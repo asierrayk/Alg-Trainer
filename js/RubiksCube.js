@@ -1,14 +1,47 @@
 var currentRotation = "";
 var cube = new RubiksCube();
-var gestures = getGestures();//See js/gestures.js
-var longestGesture = Math.max(1, ...gestures.map(gesture => gestureToMoves(gesture[0]).length));
+var gestures;//See js/gestures.js
+var longestGesture;
 var moveBuffer = [];//The most recent moves, for matching against gestures
+
+//Pick up gesture bindings edited in the settings panel, without a reload - a reload would drop a
+//connected smart cube, which is the whole reason the editor lives in the panel.
+function reloadGestures(){
+    gestures = getGestures();
+    longestGesture = Math.max(1, ...gestures.map(gesture => gestureToMoves(gesture[0]).length));
+}
+reloadGestures();
 var currentAlgorithm = "";//After an alg gets tested for the first time, it becomes the currentAlgorithm.
 var currentScramble = "";
 var algArr;//This is the array of alternatives to currentAlgorithm
 var canvas = document.getElementById("cube");
 var ctx = canvas.getContext("2d");
-var stickerSize = canvas.width/9;
+var stickerSize = canvas.width/9;//Recomputed by resizeCube once the layout is known
+
+//drawCube lays the cube out on a grid of squares: 9 wide for a 3x3 (the U and F faces plus the
+//L and R side strips), 5 wide for a 2x2, 6 tall either way. Fit the biggest such grid into
+//whatever space the stage gives us, and draw at device resolution so it stays sharp on a phone.
+function resizeCube(){
+    var box = document.getElementById("simcube");
+    if (!box || !box.clientWidth || !box.clientHeight){
+        return;
+    }
+    var cols = document.getElementById("cubeType").value == "2x2" ? 5 : 9;
+    var rows = 6;
+    var dpr = window.devicePixelRatio || 1;
+    var cell = Math.floor(Math.min(box.clientWidth / cols, box.clientHeight / rows));
+    if (cell < 1){
+        return;
+    }
+
+    canvas.style.width = (cell * cols) + "px";
+    canvas.style.height = (cell * rows) + "px";
+    canvas.width = Math.round(cell * cols * dpr);
+    canvas.height = Math.round(cell * rows * dpr);
+    stickerSize = cell * dpr;
+
+    drawCube(cube.cubestate);
+}
 var currentAlgIndex = 0;
 var algorithmHistory = [];
 var shouldRecalculateStatistics = true;
@@ -301,6 +334,15 @@ cube.doAlgorithm(initialOrientation);
 drawCube(cube.cubestate);
 updateVisualCube(initialOrientation);
 
+//#page is still hidden at this point, so #simcube has no size yet and resizeCube would bail.
+//The observer fires as soon as showPage() reveals it, and on every later layout change.
+if (window.ResizeObserver){
+    new ResizeObserver(function(){ resizeCube(); }).observe(document.getElementById("simcube"));
+} else {
+    window.addEventListener("resize", resizeCube);
+}
+window.addEventListener("orientationchange", resizeCube);
+
 var useVirtual = document.getElementById("useVirtual");
 useVirtual.addEventListener("click", function(){
     setVirtualCube(this.checked);
@@ -381,7 +423,7 @@ fullCN.addEventListener("click", function(){
 var cubeType = document.getElementById("cubeType");
 cubeType.addEventListener("change", function(){
     localStorage.setItem("cubeType", this.value);
-    drawCube(cube.cubestate);
+    resizeCube();//The grid is 9 wide for a 3x3 but only 5 for a 2x2, so the cell size changes
     updateVisualCube("");
 });
 
@@ -1462,7 +1504,7 @@ function toggleVirtualCube(){
     var sim = document.getElementById("simcube");
 
     if (sim.style.display == 'none'){
-        sim.style.display = 'block';
+        sim.style.display = 'flex';//#simcube centres the canvas with flexbox; anything but 'none' counts as in use
     }
     else {
         sim.style.display = 'none';
@@ -1472,7 +1514,7 @@ function toggleVirtualCube(){
 function setVirtualCube(setting){
     var sim = document.getElementById("simcube");
     if (setting){
-        sim.style.display = 'block';
+        sim.style.display = 'flex';//#simcube centres the canvas with flexbox; anything but 'none' counts as in use
     } else {
         sim.style.display = 'none';
         document.getElementById("timer").style.display = 'block'; //timer has to be shown when simulator cube is not used
@@ -1594,10 +1636,19 @@ function nextScramble(displayReady=true){
 
 var historyIndex;
 
+//The settings panel owns the keyboard while it is open: space belongs to the checkbox or the text
+//field the user is in, not to the timer. js/ui.js defines these once the panel exists.
+function trainerKeysAreLive(){
+    if (typeof settingsPanelIsOpen === "function" && settingsPanelIsOpen()){
+        return false;
+    }
+    return document.activeElement === null || document.activeElement === document.body;
+}
+
 document.onkeyup = function(event) {
     if (event.keyCode == 32) { //space
 
-        if (document.activeElement.type == "textarea"){
+        if (!trainerKeysAreLive()){
             return;
         }
         document.getElementById("timer").style.color = "white"; //Timer should never be any color other than white when space is not pressed down
@@ -1621,7 +1672,7 @@ var doNothingNextTimeSpaceIsPressed = true;
 document.onkeydown = function(event) { //Stops the screen from scrolling down when you press space
 
     if (event.keyCode == 32) { //space
-        if (document.activeElement.type == "textarea"){
+        if (!trainerKeysAreLive()){
             return;
         }
         event.preventDefault();

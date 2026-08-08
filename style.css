@@ -1,7 +1,13 @@
+html, body {
+    height: 100%;
+}
+
 body {
+    margin: 0;
     background: black;
     font-family: Arial;
     color: white;
+    overflow: hidden;
 }
 
 p {
@@ -10,84 +16,415 @@ p {
     color: white;
 }
 
-hr { 
+hr {
     display: block;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0.5em auto;
     border-style: inset;
     border-width: 0.5px;
-    border-color:#303030;
-}
-
-#timer {
-    font-family: Arial;
-    font-size: 30px;
-    color: white;
-}
-
-#statistics {
-    font-size: 20px;
-}
-
-p.scramble {
-    vertical-align: middle; 
-    text-align: center;
-}
-
-p.algdisp {
-
-
+    border-color: #303030;
 }
 
 table {
     border-collapse: collapse;
 }
 
-th, td, tr{
+th, td, tr {
     border: none;
 }
 
-.column_left {
-    float: left;
-    width: 30%;
-}
-
-.column_middle {
-    text-align: center;
-    float: left;
-    width: 40%;  
-}
-
-
-.column_right {
-    text-align: center;
-    float: left;
-    width: 30%;
-}
-
-.algsetpicker{
-    width:70%;
-}
-
 a:link {
-    color: cornflowerblue
+    color: cornflowerblue;
 }
 
 a:visited {
-    color: darkslateblue
+    color: darkslateblue;
 }
 
+
+/* ---- The stage: cube full screen, HUD at the edges ---- */
+
+#page {
+    display: none;
+}
+
+#stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+p.scramble {
+    flex: none;
+    margin: 0.4em 3.5em 0.2em 0.5em; /* room for the settings button */
+    text-align: center;
+    font-size: clamp(15px, 3.5vw, 24px);
+    word-break: break-word;
+}
+
+/* The canvas sizes itself into whatever space is left. See resizeCube() in js/RubiksCube.js */
+#simcube {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#cube {
+    display: block;
+}
+
+#hudBottom {
+    flex: none;
+    width: 100%;
+    text-align: center;
+    /* stays at the bottom even when the virtual cube is switched off and #simcube is hidden */
+    margin-top: auto;
+    /* clear of the fixed #controls row */
+    padding-bottom: 4.2em;
+}
+
+#hudBottom > p {
+    margin: 0.15em 0;
+}
+
+#timer {
+    font-family: Arial;
+    font-size: clamp(22px, 6vw, 34px);
+    color: white;
+}
+
+p.algdisp {
+    font-size: clamp(14px, 3.2vw, 20px);
+    word-break: break-word;
+}
+
+#statistics {
+    font-size: 18px;
+}
+
+#controls {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, 0);
+    display: flex;
+    gap: 0.5em;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+#controls > button {
+    background-color: grey;
+    border: none;
+    color: white;
+    padding: 15px 24px;
+    min-height: 44px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#openSettings {
+    position: fixed;
+    top: 0.4em;
+    right: 0.4em;
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+    line-height: 1;
+    background: transparent;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+
+/* ---- Settings panel ---- */
+
+#panelScrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10;
+}
+
+#settingsPanel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 11;
+    width: 420px;
+    max-width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: #111;
+    border-left: 1px solid #333;
+    box-sizing: border-box;
+}
+
+#settingsPanel[hidden],
+#panelScrim[hidden] {
+    display: none;
+}
+
+.panel-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.4em 0.6em;
+    border-bottom: 1px solid #333;
+    padding-top: calc(0.4em + env(safe-area-inset-top));
+}
+
+.panel-head h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+#closeSettings {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+    background: transparent;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.panel-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 0.8em calc(1.5em + env(safe-area-inset-bottom)) 0.8em;
+}
+
+.panel-body details {
+    border-bottom: 1px solid #2a2a2a;
+    padding: 0.2em 0;
+}
+
+.panel-body summary {
+    padding: 0.7em 0.2em;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    min-height: 22px;
+}
+
+.panel-body h3 {
+    font-size: 16px;
+    margin: 1em 0 0.3em 0;
+}
+
+.panel-body input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    margin: 0.35em 0.4em 0.35em 0;
+}
+
+.panel-body select,
+.panel-body input[type="text"],
+.panel-body textarea {
+    background: #1c1c1c;
+    color: white;
+    border: 1px solid #444;
+    padding: 0.35em;
+    font-size: 15px;
+    max-width: 100%;
+}
+
+.panel-body button {
+    background-color: grey;
+    border: none;
+    color: white;
+    padding: 0.6em 1em;
+    min-height: 36px;
+    margin: 0.25em 0.25em 0.25em 0;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.panel-body .hint {
+    font-size: 14px;
+    color: #bbb;
+    margin: 0.5em 0;
+}
+
+.algsetpicker {
+    width: 100%;
+}
+
+#userDefinedAlgs {
+    width: 100%;
+    max-width: 100%;
+    height: 12em;
+    box-sizing: border-box;
+}
+
+#visualcube {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    cursor: pointer;
+}
+
+.timelist-scroll {
+    overflow-y: auto;
+    max-height: 150px;
+}
+
+#timeList {
+    text-align: left;
+    font-size: 16px;
+}
+
+
+/* ---- Binding editors (js/controlsEditor.js, js/gesturesEditor.js) ---- */
+
+.editor-table {
+    width: 100%;
+}
+
+.editor-table td,
+.editor-table th {
+    padding: 0.35em;
+    text-align: left;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.editor-table tr {
+    cursor: pointer;
+}
+
+.editor-table input,
+.editor-table select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.editor-changed {
+    padding: 0.4em 0;
+}
+
+.editor-hint {
+    font-size: 14px;
+    color: #bbb;
+}
+
+/* The standalone controls.html / gestures.html pages */
+body.standalone-editor {
+    overflow: auto;
+    padding: 1em;
+    box-sizing: border-box;
+}
+
+body.standalone-editor .editor-table td,
+body.standalone-editor .editor-table th {
+    border-bottom: 1px solid #888888;
+}
+
+body.standalone-editor button {
+    background-color: grey;
+    border: none;
+    color: white;
+    padding: 0.6em 1em;
+    margin: 0.25em 0.25em 0.25em 0;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+body.standalone-editor input,
+body.standalone-editor select {
+    background: #1c1c1c;
+    color: white;
+    border: 1px solid #444;
+    padding: 0.35em;
+}
+
+
+/* ---- Phones ---- */
+
+/*
+ * Landscape on a phone leaves so little height that a stacked HUD squeezes the cube down to
+ * nothing. Put the cube in its own full-height column with the HUD beside it instead.
+ */
+@media (max-height: 520px) and (orientation: landscape) {
+    #stage {
+        display: grid;
+        grid-template-columns: 1fr minmax(170px, 34%);
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+            "cube scramble"
+            "cube hud";
+        align-items: start;
+    }
+
+    #simcube {
+        grid-area: cube;
+        height: 100%;
+    }
+
+    p.scramble {
+        grid-area: scramble;
+        margin: 0.3em 3em 0.2em 0.5em;
+        font-size: clamp(13px, 2.4vw, 18px);
+    }
+
+    #hudBottom {
+        grid-area: hud;
+        margin-top: 0;
+        padding-bottom: 3.4em;
+    }
+
+    #timer {
+        font-size: clamp(18px, 4vw, 26px);
+    }
+
+    #controls > button {
+        padding: 10px 14px;
+        min-height: 40px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 700px) {
+    #settingsPanel {
+        width: 100%;
+        border-left: none;
+    }
+
+    #hudBottom {
+        padding-bottom: 4em;
+    }
+
+    #controls > button {
+        padding: 13px 16px;
+        font-size: 15px;
+    }
+}
+
+
+/* ---- Loader ---- */
 
 #loader {
     position: absolute;
     left: 50%;
     top: 50%;
     z-index: 1;
-    width: 150px;
-    height: 150px;
-    margin: -75px 0 0 -75px;
+    margin: -60px 0 0 -60px;
     border: 16px solid #f3f3f3;
     border-radius: 50%;
     border-top: 16px solid white;
@@ -120,42 +457,11 @@ a:visited {
 }
 
 @-webkit-keyframes animatebottom {
-    from { bottom:-100px; opacity:0 } 
+    from { bottom:-100px; opacity:0 }
     to { bottom:0px; opacity:1 }
 }
 
-@keyframes animatebottom { 
-    from{ bottom:-100px; opacity:0 } 
+@keyframes animatebottom {
+    from{ bottom:-100px; opacity:0 }
     to{ bottom:0; opacity:1 }
 }
-
-#page {
-    display: none;
-
-}
-
-#controls {   
-    position: fixed;
-    left: 50%;
-    bottom: 0;
-    transform: translate(-50%, 0);
-    margin: 0 auto;
-}
-
-#controls > button {
-    background-color: grey; 
-    border: none;
-    color: white;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-}
-
-
-border-top: 16px solid blue;
-border-right: 16px solid green;
-border-bottom: 16px solid red;
-border-left: 16px solid yellow;
-

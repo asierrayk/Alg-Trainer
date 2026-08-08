@@ -4,196 +4,21 @@
     <head>
         <title>Algorithm trainer</title>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
         <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
         <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
         <link rel="stylesheet" type="text/css" href="style.css">
-        <style>
-
-td {
-    width: 12em;
-    padding: 0.4em;
-}
-tr {
-    border: 1px solid #888888;
-}
-td:nth-child(1) {
-    text-align: right;
-    border-right: 1px solid #888888;
-}
-input, select {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-#changed {
-    visibility: hidden;
-    padding: 1em;
-}
-       </style>
     </head>
-    <body>
+    <body class="standalone-editor">
         <h2> Cube Gesture Config </h2>
 
-        <p>
-            Perform one of these move sequences on the cube - virtual, or a connected smart cube -
-            and the trainer does the thing in the "Action" column, no keyboard needed. Click a row
-            to change it.
-        </p>
-        <p>
-            Write sequences in ordinary notation, separated by spaces, e.g. <code>U U U' U'</code>.
-            Pick sequences that leave the cube unchanged, otherwise using one will wreck the case
-            you are working on.
-        </p>
-
-        <div id="changed">
-            <button id="save">Save!</button>
-            <button id="undo">Go back!</button>
-        </div>
-        <table id="currentGestures">
-            <tr>
-                <th>Moves</th>
-                <th>Action</th>
-                <th></th>
-            </tr>
-
-            <tbody id="gesturesbody">
-            </tbody>
-        </table>
-        <br />
-        <button id="add-new"> Add another! </button>
-        <br />
-        <br />
-        <button id="reset"> Reset to default! </button>
+        <div id="gesturesEditor"></div>
     </body>
 
     <script src="js/gestures.js"></script>
+    <script src="js/gesturesEditor.js"></script>
     <script>
-
-let gesturesBody = document.getElementById("gesturesbody");
-let changedDiv = document.getElementById("changed");
-
-let currentGestures = getGestures();
-
-let isChanging = false;
-
-function notifyChanged() {
-    if (JSON.stringify(currentGestures) === JSON.stringify(getGestures())) {
-        changedDiv.style.visibility = "hidden";
-    } else {
-        changedDiv.style.visibility = "visible";
-    }
-}
-
-function editField(i) {
-    let [sequence, action] = currentGestures[i];
-    let tr = gesturesBody.children[i];
-    let movesTd = tr.children[0];
-    let actionTd = tr.children[1];
-    let buttonsTd = tr.children[2];
-
-    if (isChanging) {
-        rerender(); return;
-    }
-    isChanging = true;
-
-    movesTd.innerHTML = "";
-    let movesField = document.createElement("input");
-    movesField.value = sequence;
-    movesTd.appendChild(movesField);
-
-    actionTd.innerHTML = "";
-    let actionField = document.createElement("select");
-    for (let id in gestureActions) {
-        let option = document.createElement("option");
-        option.value = id;
-        option.text = gestureActions[id];
-        actionField.add(option);
-    }
-    actionField.value = action;
-    actionTd.appendChild(actionField);
-
-    buttonsTd.innerHTML = "";
-    let escapeButton = document.createElement("button");
-    escapeButton.innerText = "❌";
-    escapeButton.onclick = _e => {
-        rerender();
-    };
-
-    buttonsTd.appendChild(escapeButton);
-
-    let acceptButton = document.createElement("button");
-    acceptButton.innerText = "✅";
-    acceptButton.onclick = _e => {
-        let moves = gestureToMoves(movesField.value);
-        if (moves.length === 0) {
-            alert("A gesture needs at least one move.");
-            return;
-        }
-        currentGestures[i] = [moves.join(" "), actionField.value];
-        rerender();
-    };
-
-    buttonsTd.appendChild(acceptButton);
-
-    let removeButton = document.createElement("button");
-    removeButton.innerText = "🗑";
-    removeButton.onclick = _e => {
-        currentGestures.splice(i, 1);
-        rerender();
-    };
-
-    buttonsTd.appendChild(removeButton);
-
-    tr.onclick = null;
-}
-
-function rerender(quiet=false) {
-    if (!quiet) {
-        notifyChanged();
-    }
-    gesturesBody.innerHTML = "";
-    isChanging = false;
-
-    for (let i = 0; i < currentGestures.length; i++) {
-        let [sequence, action] = currentGestures[i];
-        let movesTd = document.createElement("td");
-        movesTd.innerText = sequence;
-        let actionTd = document.createElement("td");
-        actionTd.innerText = gestureActions[action] || action;
-
-        let tr = document.createElement("tr");
-        tr.appendChild(movesTd);
-        tr.appendChild(actionTd);
-
-        tr.appendChild(document.createElement("td"));
-
-        gesturesBody.appendChild(tr);
-        tr.onclick = _e => editField(i);
-    }
-}
-document.getElementById("add-new").onclick = _ => {
-    currentGestures.push(["", Object.keys(gestureActions)[0]]);
-    rerender(true);
-    editField(currentGestures.length - 1);
-};
-
-document.getElementById("reset").onclick = _ => {
-    currentGestures = JSON.parse(JSON.stringify(defaultGestures));
-    rerender(false);
-};
-
-document.getElementById("save").onclick = _ => {
-    localStorage.setItem("gestures", JSON.stringify(currentGestures));
-    rerender();
-}
-
-document.getElementById("undo").onclick = _ => {
-    currentGestures = getGestures();
-    rerender();
-};
-
-rerender();
-
+        initGesturesEditor(document.getElementById("gesturesEditor"));
     </script>
 </html>
