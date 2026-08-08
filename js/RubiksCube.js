@@ -1126,7 +1126,10 @@ function updateVisualCube(algorithm){
 
     var view = localStorage.getItem("visualCubeView");
 
-    var imgsrc = "https://www.cubing.net/api/visualcube/?fmt=svg&size=300&view=" + view + "&bg=black&pzl=" + pzl + "&alg=x2" + algorithm;
+    //VisualCube's own scheme is yellow top, green front, orange right, which is this app's
+    //reference orientation turned by z2 - so undo that before the algorithm runs. The &sch=
+    //ordering below (D,R,B,U,L,F) is the matching relabelling for that same z2.
+    var imgsrc = "https://www.cubing.net/api/visualcube/?fmt=svg&size=300&view=" + view + "&bg=black&pzl=" + pzl + "&alg=z2" + algorithm;
 
     if (useCustomColourScheme.checked){
         validateCustomColourScheme();
