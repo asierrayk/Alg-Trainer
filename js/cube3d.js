@@ -21,6 +21,8 @@
     //below it. Drag to change it.
     var spin = {x: 0.5, y: -0.62};
     var animating = null;
+    function noTurnInFlight() {}
+    var endTurn = noTurnInFlight;//replaced for the duration of each animated turn
 
     //cubestate holds nine stickers per face in the order U R F D L B, each read as rows of three
     //looking at that face. Map (row, col) to the lattice position of the cubie carrying it, and to
@@ -171,6 +173,12 @@
         if (!ready || failed) {
             return;
         }
+        //A new state means the turn being animated is already history - solving a case brings up
+        //the next one while the last move is still spinning. Land the layer before repainting, or
+        //the animation would finish later and paint the state it captured when it started.
+        if (animating) {
+            endTurn();
+        }
         paint(cubeArray);
         render();
     };
@@ -220,6 +228,9 @@
         var started = null;
 
         function step(now) {
+            if (!animating) {
+                return;//a new state landed the layer early
+            }
             if (started === null) {
                 started = now;
             }
@@ -232,7 +243,13 @@
                 return;
             }
 
-            //Put the cubies back on their lattice and let the new state supply the colours
+            endTurn();
+            window.cube3dSetState(after);
+        }
+
+        //Put the cubies back on their lattice. Colours always come from a repaint afterwards, so
+        //the model never has to track where a cubie has travelled to.
+        endTurn = function () {
             for (var i = 0; i < moving.length; i++) {
                 world.attach(moving[i]);
                 moving[i].position.set(Math.round(moving[i].position.x),
@@ -242,8 +259,8 @@
             }
             world.remove(pivot);
             animating = null;
-            window.cube3dSetState(after);
-        }
+            endTurn = noTurnInFlight;
+        };
 
         requestAnimationFrame(step);
     };

@@ -4,6 +4,20 @@ var gestures;//See js/gestures.js
 var longestGesture;
 var moveBuffer = [];//The most recent moves, for matching against gestures
 
+//Set while the trainer rebuilds the cube for a case, so the solved cube it passes through on the
+//way is not mistaken for the user having solved one. See doAlg.
+var settingUpCase = false;
+var caseIsScrambled = false;
+
+function whileSettingUpCase(build){
+    settingUpCase = true;
+    try {
+        build();
+    } finally {
+        settingUpCase = false;
+    }
+}
+
 //Pick up gesture bindings edited in the settings panel, without a reload - a reload would drop a
 //connected smart cube, which is the whole reason the editor lives in the panel.
 function reloadGestures(){
@@ -675,7 +689,18 @@ function doAlg(algorithm){
 
     checkGestures();
 
-    if (timerIsRunning && cube.isSolved() && isUsingVirtualCube()){
+    //Solving the cube finishes the case and brings up the next one. This used to be gated on the
+    //timer running, which meant it never happened at all with the timer hidden, since startTimer
+    //bails out in that case.
+    //
+    //Two things have to be true instead: the trainer must not be part way through building a case
+    //- it passes through a solved cube after the preorientation, before the scramble - and the
+    //cube must actually have been scrambled since, so that idle rotations on a solved cube do not
+    //count as solving anything.
+    if (!cube.isSolved()){
+        caseIsScrambled = true;
+    } else if (caseIsScrambled && !settingUpCase && isUsingVirtualCube()){
+        caseIsScrambled = false;
         stopTimer();
         nextScramble();
         moveBuffer.length = 0;
@@ -972,9 +997,11 @@ function testAlg(algTest, addToHistory=true){
 
     document.getElementById("algdisp").innerHTML = "";
 
-    cube.resetCube();
-    doAlg(algTest.preorientation);
-    doAlg(algTest.scramble);
+    whileSettingUpCase(function(){
+        cube.resetCube();
+        doAlg(algTest.preorientation);
+        doAlg(algTest.scramble);
+    });
     drawCube(cube.cubestate)
 
     updateVisualCube(algTest.preorientation + algTest.scramble);
@@ -1021,9 +1048,11 @@ function reTestAlg(){
     if (lastTest==undefined){
         return;
     }
-    cube.resetCube();
-    doAlg(lastTest.preorientation);
-    doAlg(lastTest.scramble);
+    whileSettingUpCase(function(){
+        cube.resetCube();
+        doAlg(lastTest.preorientation);
+        doAlg(lastTest.scramble);
+    });
     drawCube(cube.cubestate);
 
 }
@@ -1037,8 +1066,10 @@ function updateTrainer(scramble, solutions, algorithm, timer){
     }
 
     if (algorithm!=null){
-        cube.resetCube();
-        doAlg(algorithm);
+        whileSettingUpCase(function(){
+            cube.resetCube();
+            doAlg(algorithm);
+        });
         updateVisualCube(algorithm);
     }
 
