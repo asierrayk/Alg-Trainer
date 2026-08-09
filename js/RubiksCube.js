@@ -18,29 +18,42 @@ var canvas = document.getElementById("cube");
 var ctx = canvas.getContext("2d");
 var stickerSize = canvas.width/9;//Recomputed by resizeCube once the layout is known
 
-//drawCube lays the cube out on a grid of squares: 9 wide for a 3x3 (the U and F faces plus the
-//L and R side strips), 5 wide for a 2x2, 6 tall either way. Fit the biggest such grid into
+//Each view has its own grid of cells - see cubeLayout - so fit the biggest such grid into
 //whatever space the stage gives us, and draw at device resolution so it stays sharp on a phone.
 function resizeCube(){
     var box = document.getElementById("simcube");
     if (!box || !box.clientWidth || !box.clientHeight){
         return;
     }
-    var cols = document.getElementById("cubeType").value == "2x2" ? 5 : 9;
-    var rows = 6;
+
+    if (currentCubeView() === "3d"){
+        cube3dResize(box.clientWidth, box.clientHeight);
+        cube3dSetState(cube.cubestate);
+        return;
+    }
+
+    var layout = activeCubeLayout();
     var dpr = window.devicePixelRatio || 1;
-    var cell = Math.floor(Math.min(box.clientWidth / cols, box.clientHeight / rows));
+    var cell = Math.min(box.clientWidth / layout.cols, box.clientHeight / layout.rows);
     if (cell < 1){
         return;
     }
 
-    canvas.style.width = (cell * cols) + "px";
-    canvas.style.height = (cell * rows) + "px";
-    canvas.width = Math.round(cell * cols * dpr);
-    canvas.height = Math.round(cell * rows * dpr);
+    canvas.style.width = (cell * layout.cols) + "px";
+    canvas.style.height = (cell * layout.rows) + "px";
+    canvas.width = Math.round(cell * layout.cols * dpr);
+    canvas.height = Math.round(cell * layout.rows * dpr);
     stickerSize = cell * dpr;
 
     drawCube(cube.cubestate);
+}
+
+//Only one renderer is on screen at a time.
+function applyCubeView(){
+    var is3d = currentCubeView() === "3d";
+    canvas.style.display = is3d ? "none" : "block";
+    cube3dSetVisible(is3d);
+    resizeCube();
 }
 var currentAlgIndex = 0;
 var algorithmHistory = [];
@@ -111,6 +124,7 @@ var defaults = {"useVirtual":true,
                 "userDefinedAlgs":"",
                 "fullCN":false,
                 "cubeType":"3x3",
+                "cubeView":"qcube-extended",
                 "algsetpicker":document.getElementById("algsetpicker").options[0].value,
                 "useCustomColourScheme":false,
                 "customColourU":"white",
@@ -169,8 +183,10 @@ if (document.getElementById("userDefined").checked){
     document.getElementById("userDefinedAlgs").style.display = "block";
 }
 
-document.getElementById("lines").addEventListener("change", function(){
-    drawCube(cube.cubestate);
+//Each view has its own grid shape, so switching resizes the canvas as well as redrawing.
+document.getElementById("cubeView").addEventListener("change", function(){
+    localStorage.setItem("cubeView", this.value);
+    applyCubeView();
 });
 
 //Changing how you hold the cube re-orients the case you are on, so the trainer keeps
@@ -340,7 +356,7 @@ createCheckboxes();
 //Bypass doAlg here: this is not a move the user made, so it should not feed the gestures.
 var initialOrientation = practiceOrientation();
 cube.doAlgorithm(initialOrientation);
-drawCube(cube.cubestate);
+applyCubeView();//Sets up whichever renderer the saved view asks for, then draws
 updateVisualCube(initialOrientation);
 
 //#page is still hidden at this point, so #simcube has no size yet and resizeCube would bail.
@@ -472,222 +488,118 @@ addSelected.addEventListener("click", function(){
     document.getElementById("userDefinedAlgs").value += "\n" + algList.join("\n");
 });
 
-function fillSticker(x, y, colour) {
+//The gap that separates one sticker from the next, as a fraction of a cell. Replaces the old
+//outline setting: the black background showing through is what tells stickers apart.
+var STICKER_GAP = 0.06;
+
+function fillSticker(x, y, colour, w, h) {
+    w = (w === undefined ? 1 : w);
+    h = (h === undefined ? 1 : h);
+    var inset = stickerSize * STICKER_GAP / 2;
     ctx.fillStyle = colour;
-    ctx.fillRect(stickerSize * x, stickerSize * y, stickerSize, stickerSize);
+    ctx.fillRect(stickerSize * x + inset, stickerSize * y + inset,
+                 stickerSize * w - inset * 2, stickerSize * h - inset * 2);
 }
 
-function fillWithIndex(x, y, face, index, cubeArray, shouldBeCleared = false) {
-    index--;
-    switch (face) {
-        case "u":
-            break;
-        case "r":
-            index += 9;
-            break;
-        case "f":
-            index += 18;
-            break;
-        case "d":
-            index += 27;
-            break;
-        case "l":
-            index += 36;
-            break;
-        case "b":
-            index += 45;
-            break;
-    }
+//cubestate holds 54 stickers as face values 1-6, nine per face in the order U R F D L B.
+var faceOffsets = {"u": 0, "r": 9, "f": 18, "d": 27, "l": 36, "b": 45};
+var faceOfSticker = {1: "U", 2: "R", 3: "F", 4: "D", 5: "L", 6: "B"};
 
-    var sticker = cubeArray[index];
-    var colour;
-    switch (sticker) {
-        case 1:
-            if (useCustomColourScheme.checked){
-                colour = customColourU.value;
-            } else {
-                colour = defaults["customColourU"];
-            }
-            break;
-        case 2:
-            if (useCustomColourScheme.checked){
-                colour = customColourR.value;
-            } else {
-                colour = defaults["customColourR"];
-            }
-            break;
-        case 3:
-            if (useCustomColourScheme.checked){
-                colour = customColourF.value;
-            } else {
-                colour = defaults["customColourF"];
-            }
-            break;
-        case 4:
-            if (useCustomColourScheme.checked){
-                colour = customColourD.value;
-            } else {
-                colour = defaults["customColourD"];
-            }
-            break;
-        case 5:
-            if (useCustomColourScheme.checked){
-                colour = customColourL.value;
-            } else {
-                colour = defaults["customColourL"];
-            }
-            break;
-        case 6:
-            if (useCustomColourScheme.checked){
-                colour = customColourB.value;
-            } else {
-                colour = defaults["customColourB"];
-            }
-            break;
+//The colour a face is painted in: the custom scheme when it is switched on, the standard one
+//otherwise. Shared by the flat views, the 3D cube and the VisualCube image url.
+function colourForFace(face) {
+    if (useCustomColourScheme.checked) {
+        return document.getElementById("customColour" + face).value;
     }
-    if(shouldBeCleared){
-        colour = "black";
-    }
-    fillSticker(x, y, colour);
+    return defaults["customColour" + face];
 }
-function drawCube(cubeArray) {
-    //Just Draw Corners when Doing 2x2
-    //TODO: Is this a good Idea? Is there a 2x2 draw thing already available for
-    //RubiksCube.js?
-    if(document.getElementById("cubeType").value == "2x2"){
 
-        //Clear not used Elements
-        fillWithIndex(0, 0, "l", 1, cubeArray,true);
-        fillWithIndex(1, 0, "u", 1, cubeArray,true);
-        fillWithIndex(2, 0, "u", 2, cubeArray,true);
-        fillWithIndex(3, 0, "u", 3, cubeArray,true);
-        fillWithIndex(4, 0, "r", 3, cubeArray,true);
+function fillWithIndex(x, y, face, index, cubeArray, shouldBeCleared = false, w, h) {
+    var sticker = cubeArray[faceOffsets[face] + index - 1];
+    fillSticker(x, y, shouldBeCleared ? "black" : colourForFace(faceOfSticker[sticker]), w, h);
+}
 
-        fillWithIndex(0, 1, "l", 2, cubeArray,true);
-        fillWithIndex(1, 1, "u", 4, cubeArray,true);
-        fillWithIndex(2, 1, "u", 5, cubeArray,true);
-        fillWithIndex(3, 1, "u", 6, cubeArray,true);
-        fillWithIndex(4, 1, "r", 2, cubeArray,true);
+//---- Cube views -------------------------------------------------------------------------------
+//
+// Two flat layouts, both modelled on csTimer's qcube: the U face above the F face with a gap
+// between them, and the L and R faces hinged outward into vertical bars. Each bar is the face row
+// touching U plus the face column touching F, joined by the corner sticker they share, which is
+// drawn tall enough to span the gap. "extended" adds the four extra stickers per side that show
+// more of L and R.
+//
+// A layout is plain data - a grid size in cells and a list of placements - so one loop draws it
+// and resizeCube can ask how big the grid is.
 
-        fillWithIndex(0, 2, "l", 3, cubeArray,true);
-        fillWithIndex(1, 2, "u", 7, cubeArray,true);
-        fillWithIndex(2, 2, "u", 8, cubeArray,true);
-        fillWithIndex(3, 2, "u", 9, cubeArray,true);
-        fillWithIndex(4, 2, "r", 1, cubeArray,true);
+var BLOCK_GAP = 0.35;//cells between the U block and the F block
 
-        fillWithIndex(0, 3, "l", 3, cubeArray,true);
-        fillWithIndex(1, 3, "f", 1, cubeArray,true);
-        fillWithIndex(2, 3, "f", 2, cubeArray,true);
-        fillWithIndex(3, 3, "f", 3, cubeArray,true);
-        fillWithIndex(4, 3, "r", 1, cubeArray,true);
+//The app models a 2x2 as a 3x3 holding only corners, so a 2x2 view reads the corner stickers.
+function stickerIndex(n, row, col){
+    return n === 2 ? [1, 3, 7, 9][row * 2 + col] : row * 3 + col + 1;
+}
 
-        fillWithIndex(0, 4, "l", 6, cubeArray,true);
-        fillWithIndex(1, 4, "f", 4, cubeArray,true);
-        fillWithIndex(2, 4, "f", 5, cubeArray,true);
-        fillWithIndex(3, 4, "f", 6, cubeArray,true);
-        fillWithIndex(4, 4, "r", 4, cubeArray,true);
+function cubeLayout(n, extended){
+    var stickers = [];
+    var side = extended ? 2 : 0;//extra columns outside each bar
+    var left = side;            //x of the left bar
+    var faceX = left + 1;
+    var right = faceX + n;      //x of the right bar
+    var fY = n + BLOCK_GAP;     //y of the F block
 
-        fillWithIndex(0, 5, "l", 9, cubeArray,true);
-        fillWithIndex(1, 5, "f", 7, cubeArray,true);
-        fillWithIndex(2, 5, "f", 8, cubeArray,true);
-        fillWithIndex(3, 5, "f", 9, cubeArray,true);
-        fillWithIndex(4, 5, "r", 7, cubeArray,true);
-
-        //Draw 2x2
-        fillWithIndex(0, 2, "l", 1, cubeArray);
-        fillWithIndex(1, 2, "u", 1, cubeArray);
-        fillWithIndex(2, 2, "u", 3, cubeArray);
-        fillWithIndex(3, 2, "r", 3, cubeArray);
-
-        fillWithIndex(0, 3, "l", 3, cubeArray);
-        fillWithIndex(1, 3, "u", 7, cubeArray);
-        fillWithIndex(2, 3, "u", 9, cubeArray);
-        fillWithIndex(3, 3, "r", 1, cubeArray);
-
-        fillWithIndex(0, 4, "l", 3, cubeArray);
-        fillWithIndex(1, 4, "f", 1, cubeArray);
-        fillWithIndex(2, 4, "f", 3, cubeArray);
-        fillWithIndex(3, 4, "r", 1, cubeArray);
-
-        fillWithIndex(0, 5, "l", 9, cubeArray);
-        fillWithIndex(1, 5, "f", 7, cubeArray);
-        fillWithIndex(2, 5, "f", 9, cubeArray);
-        fillWithIndex(3, 5, "r", 7, cubeArray);
-
-    }else{
-        fillWithIndex(2+0, 0, "l", 1, cubeArray);
-        fillWithIndex(2+1, 0, "u", 1, cubeArray);
-        fillWithIndex(2+2, 0, "u", 2, cubeArray);
-        fillWithIndex(2+3, 0, "u", 3, cubeArray);
-        fillWithIndex(2+4, 0, "r", 3, cubeArray);
-					  
-        fillWithIndex(2+0, 1, "l", 2, cubeArray);
-        fillWithIndex(2+1, 1, "u", 4, cubeArray);
-        fillWithIndex(2+2, 1, "u", 5, cubeArray);
-        fillWithIndex(2+3, 1, "u", 6, cubeArray);
-        fillWithIndex(2+4, 1, "r", 2, cubeArray);
-					  
-        fillWithIndex(2+0, 2, "l", 3, cubeArray);
-        fillWithIndex(2+1, 2, "u", 7, cubeArray);
-        fillWithIndex(2+2, 2, "u", 8, cubeArray);
-        fillWithIndex(2+3, 2, "u", 9, cubeArray);
-        fillWithIndex(2+4, 2, "r", 1, cubeArray);
-					  
-        fillWithIndex(2+0, 3, "l", 3, cubeArray);
-        fillWithIndex(2+1, 3, "f", 1, cubeArray);
-        fillWithIndex(2+2, 3, "f", 2, cubeArray);
-        fillWithIndex(2+3, 3, "f", 3, cubeArray);
-        fillWithIndex(2+4, 3, "r", 1, cubeArray);
-					  
-        fillWithIndex(2+0, 4, "l", 6, cubeArray);
-        fillWithIndex(2+1, 4, "f", 4, cubeArray);
-        fillWithIndex(2+2, 4, "f", 5, cubeArray);
-        fillWithIndex(2+3, 4, "f", 6, cubeArray);
-        fillWithIndex(2+4, 4, "r", 4, cubeArray);
-					  
-        fillWithIndex(2+0, 5, "l", 9, cubeArray);
-        fillWithIndex(2+1, 5, "f", 7, cubeArray);
-        fillWithIndex(2+2, 5, "f", 8, cubeArray);
-        fillWithIndex(2+3, 5, "f", 9, cubeArray);
-        fillWithIndex(2+4, 5, "r", 7, cubeArray);
-		
-		fillWithIndex(0, 4, "l", 4, cubeArray);
-		fillWithIndex(1, 4, "l", 5, cubeArray);
-		fillWithIndex(0, 5, "l", 7, cubeArray);
-		fillWithIndex(1, 5, "l", 8, cubeArray);
-		
-		
-		fillWithIndex(7, 4, "r", 5, cubeArray);
-		fillWithIndex(8, 4, "r", 6, cubeArray);
-		fillWithIndex(7, 5, "r", 8, cubeArray);
-		fillWithIndex(8, 5, "r", 9, cubeArray);
-
-        let lineValue = document.getElementById("lines").value;
-        if (lineValue === "none") return;
-        // Draw outlines
-        if (lineValue === "thin-gray") {
-            ctx.lineWidth = 0.5;
-            ctx.strokeStyle = "#ccc";
-        } else if (lineValue === "thick-gray") {
-            ctx.lineWidth = 1.5;
-            ctx.strokeStyle = "#ccc";
-        } else if (lineValue === "thin-black") {
-            ctx.lineWidth = 0.5;
-            ctx.strokeStyle = "#000";
-        } else if (lineValue === "thick-black") {
-            ctx.lineWidth = 1.5;
-            ctx.strokeStyle = "#000";
+    for (var row = 0; row < n; row++){
+        for (var col = 0; col < n; col++){
+            stickers.push({x: faceX + col, y: row, face: "u", index: stickerIndex(n, row, col)});
+            stickers.push({x: faceX + col, y: fY + row, face: "f", index: stickerIndex(n, row, col)});
         }
-        ctx.strokeRect(-1, -1, 1 + stickerSize * 2, 1 + stickerSize);
-        ctx.strokeRect(-1, stickerSize * 2, 1 + stickerSize * 2, stickerSize * 2);
-        ctx.strokeRect(-1, stickerSize * 5, 1 + stickerSize * 2, 1 + stickerSize);
+    }
 
-        ctx.strokeRect(stickerSize * 2, stickerSize, stickerSize, stickerSize);
-        ctx.strokeRect(stickerSize * 2, stickerSize * 4, stickerSize, stickerSize);
+    //L: the row touching U runs down the bar, then the column touching F continues it.
+    //The shared corner is L's top right, drawn across the gap.
+    for (var i = 0; i < n - 1; i++){
+        stickers.push({x: left, y: i, face: "l", index: stickerIndex(n, 0, i)});
+        stickers.push({x: right, y: i, face: "r", index: stickerIndex(n, 0, n - 1 - i)});
+    }
+    stickers.push({x: left, y: n - 1, h: 1 + BLOCK_GAP + 1, face: "l", index: stickerIndex(n, 0, n - 1)});
+    stickers.push({x: right, y: n - 1, h: 1 + BLOCK_GAP + 1, face: "r", index: stickerIndex(n, 0, 0)});
+    for (var i = 1; i < n; i++){
+        stickers.push({x: left, y: fY + i, face: "l", index: stickerIndex(n, i, n - 1)});
+        stickers.push({x: right, y: fY + i, face: "r", index: stickerIndex(n, i, 0)});
+    }
 
-        ctx.strokeRect(stickerSize * 3, -1, stickerSize * 2 + 1, 1 + stickerSize);
-        ctx.strokeRect(stickerSize * 3, stickerSize * 2, stickerSize * 2 + 1, stickerSize * 2);
-        ctx.strokeRect(stickerSize * 3, stickerSize * 5, stickerSize * 2 + 1, 1 + stickerSize);
+    //The extension shows the rest of L and R alongside the lower rows of F.
+    if (extended){
+        for (var row = 1; row < n; row++){
+            for (var col = 0; col < n - 1; col++){
+                stickers.push({x: col, y: fY + row, face: "l", index: stickerIndex(n, row, col)});
+                stickers.push({x: right + 1 + col, y: fY + row, face: "r", index: stickerIndex(n, row, col + 1)});
+            }
+        }
+    }
+
+    return {cols: n + 2 + side * 2, rows: 2 * n + BLOCK_GAP, stickers: stickers};
+}
+
+function currentCubeView(){
+    var view = document.getElementById("cubeView");
+    return view ? view.value : "qcube-extended";
+}
+
+function activeCubeLayout(){
+    var n = document.getElementById("cubeType").value == "2x2" ? 2 : 3;
+    return cubeLayout(n, currentCubeView() !== "qcube");
+}
+
+function drawCube(cubeArray) {
+    if (currentCubeView() === "3d"){
+        cube3dSetState(cubeArray);
+        return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    var layout = activeCubeLayout();
+    for (var i = 0; i < layout.stickers.length; i++){
+        var s = layout.stickers[i];
+        fillWithIndex(s.x, s.y, s.face, s.index, cubeArray, false, s.w, s.h);
     }
 }
 
@@ -729,7 +641,8 @@ function checkGestures(){
 function doAlg(algorithm){
     //Only moves the user actually made count towards a gesture. doAlg is also
     //called with whole scrambles and algorithms, which reset the buffer instead.
-    if (gestureToMoves(algorithm).length === 1){
+    var isSingleMove = gestureToMoves(algorithm).length === 1;
+    if (isSingleMove){
         moveBuffer.push(algorithm.trim());
         while (moveBuffer.length > longestGesture){
             moveBuffer.shift();
@@ -738,8 +651,18 @@ function doAlg(algorithm){
         moveBuffer.length = 0;
     }
 
+    //The 3D view animates a single move, so it needs the state on both sides of it. Scrambles and
+    //algorithms snap, the same distinction the gesture buffer makes above.
+    var animate3d = isSingleMove && currentCubeView() === "3d";
+    var before = animate3d ? cube.cubestate.slice() : null;
+
     cube.doAlgorithm(algorithm);
-    drawCube(cube.cubestate);
+
+    if (animate3d){
+        cube3dTurn(algorithm.trim(), before, cube.cubestate);
+    } else {
+        drawCube(cube.cubestate);
+    }
 
     checkGestures();
 
@@ -1189,12 +1112,9 @@ function updateVisualCube(algorithm){
     if (useCustomColourScheme.checked){
         validateCustomColourScheme();
 
-        imgsrc += "&sch=" + stripLeadingHashtag(customColourD.value) + "," + 
-            stripLeadingHashtag(customColourR.value) + "," +
-            stripLeadingHashtag(customColourB.value) + "," +
-            stripLeadingHashtag(customColourU.value) + "," +
-            stripLeadingHashtag(customColourL.value) + "," + 
-            stripLeadingHashtag(customColourF.value);
+        imgsrc += "&sch=" + ["D", "R", "B", "U", "L", "F"].map(function(face){
+            return stripLeadingHashtag(colourForFace(face));
+        }).join(",");
     }
 
     document.getElementById("visualcube").src = imgsrc;
