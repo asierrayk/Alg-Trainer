@@ -9,6 +9,29 @@ var moveBuffer = [];//The most recent moves, for matching against gestures
 var settingUpCase = false;
 var caseIsScrambled = false;
 
+//Both models of the cube go back to solved together: the trainer's own, and the twisty behind the
+//3D view. The twisty has no way to be handed a state - it is built solved and then moved - so
+//what has been applied since the last reset is kept, and replaying it is how the 3D view is
+//brought into step whenever it is built or rebuilt.
+var algorithmSinceReset = "";
+
+function resetCubeForCase(){
+    cube.resetCube();
+    algorithmSinceReset = "";
+    cube3dReset();
+}
+
+//Every change to the cube goes through here, so that the record stays complete
+function applyToCube(algorithm){
+    cube.doAlgorithm(algorithm);
+    algorithmSinceReset += " " + algorithm;
+}
+
+function syncCube3d(){
+    cube3dReset();
+    cube3dApply(algorithmSinceReset, false);
+}
+
 function whileSettingUpCase(build){
     settingUpCase = true;
     try {
@@ -41,8 +64,7 @@ function resizeCube(){
     }
 
     if (currentCubeView() === "3d"){
-        cube3dResize(box.clientWidth, box.clientHeight);
-        cube3dSetState(cube.cubestate);
+        cube3dResize();
         return;
     }
 
@@ -67,6 +89,9 @@ function applyCubeView(){
     var is3d = currentCubeView() === "3d";
     canvas.style.display = is3d ? "none" : "block";
     cube3dSetVisible(is3d);
+    if (is3d){
+        syncCube3d();//it is built solved, so replay whatever the cube has had done to it
+    }
     resizeCube();
 }
 var currentAlgIndex = 0;
@@ -369,7 +394,7 @@ createCheckboxes();
 //The cube starts in the orientation the user holds it in, the same as every generated case.
 //Bypass doAlg here: this is not a move the user made, so it should not feed the gestures.
 var initialOrientation = practiceOrientation();
-cube.doAlgorithm(initialOrientation);
+applyToCube(initialOrientation);
 applyCubeView();//Sets up whichever renderer the saved view asks for, then draws
 updateVisualCube(initialOrientation);
 
@@ -613,8 +638,7 @@ function activeCubeLayout(){
 
 function drawCube(cubeArray) {
     if (currentCubeView() === "3d"){
-        cube3dSetState(cubeArray);
-        return;
+        return;//the twisty is driven by moves, in doAlg - see js/cstimerCube.js
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -674,15 +698,13 @@ function doAlg(algorithm){
         moveBuffer.length = 0;
     }
 
-    //The 3D view animates a single move, so it needs the state on both sides of it. Scrambles and
-    //algorithms snap, the same distinction the gesture buffer makes above.
-    var animate3d = isSingleMove && currentCubeView() === "3d";
-    var before = animate3d ? cube.cubestate.slice() : null;
+    applyToCube(algorithm);
 
-    cube.doAlgorithm(algorithm);
-
-    if (animate3d){
-        cube3dTurn(algorithm.trim(), before, cube.cubestate);
+    //The 3D view is csTimer's twisty, which is driven by replaying the same moves rather than by
+    //being handed a state. A single move animates; scrambles and algorithms are applied at once.
+    if (currentCubeView() === "3d"){
+        //Setting a case up is not something to watch happen, so it is applied at once
+        cube3dApply(algorithm, isSingleMove && !settingUpCase);
     } else {
         drawCube(cube.cubestate);
     }
@@ -998,7 +1020,7 @@ function testAlg(algTest, addToHistory=true){
     document.getElementById("algdisp").innerHTML = "";
 
     whileSettingUpCase(function(){
-        cube.resetCube();
+        resetCubeForCase();
         doAlg(algTest.preorientation);
         doAlg(algTest.scramble);
     });
@@ -1049,7 +1071,7 @@ function reTestAlg(){
         return;
     }
     whileSettingUpCase(function(){
-        cube.resetCube();
+        resetCubeForCase();
         doAlg(lastTest.preorientation);
         doAlg(lastTest.scramble);
     });
@@ -1067,7 +1089,7 @@ function updateTrainer(scramble, solutions, algorithm, timer){
 
     if (algorithm!=null){
         whileSettingUpCase(function(){
-            cube.resetCube();
+            resetCubeForCase();
             doAlg(algorithm);
         });
         updateVisualCube(algorithm);

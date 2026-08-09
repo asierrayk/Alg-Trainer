@@ -19,3 +19,10 @@ In July 2017, I used this trainer to memorize full ZBLL (493 algorithms) in only
 - Virtual cube. Learning algs with a virtual cube saves a ton of time because you don't need to scramble your cube. I used this when I was learning full ZBLL.
 - Customizable controls: The default keyboard controls for turning the virtual cube are based on a ergonomic layout designed by Ryan Heise. However it is possible to customize the controls to whatever you want! 
 - User defined algset - Have a list of algs you want to train? No problem, just paste them into the "User defined algset" box.
+
+## Licence
+
+This project is MIT licensed, **except** for `js/twisty.js` and `js/twistynnn.js`, the virtual cube
+renderer taken unmodified from [csTimer](https://github.com/cs0x7f/cstimer), which is GPL-3.0. As a
+result a distribution of the project as a whole is effectively GPL-3.0. See `js/README.md` for the
+licence of every vendored file.
