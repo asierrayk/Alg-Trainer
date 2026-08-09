@@ -530,7 +530,12 @@ function fillWithIndex(x, y, face, index, cubeArray, shouldBeCleared = false, w,
 // A layout is plain data - a grid size in cells and a list of placements - so one loop draws it
 // and resizeCube can ask how big the grid is.
 
-var BLOCK_GAP = 0.35;//cells between the U block and the F block
+//csTimer's block gap, in cells: it separates the U block from the F block, each side bar from the
+//faces, and the whole thing from the canvas edge. Stickers within a face are separated by the
+//smaller STICKER_GAP instead.
+function blockGap(n){
+    return Math.sqrt(n / 3) * 0.1;
+}
 
 //The app models a 2x2 as a 3x3 holding only corners, so a 2x2 view reads the corner stickers.
 function stickerIndex(n, row, col){
@@ -539,15 +544,17 @@ function stickerIndex(n, row, col){
 
 function cubeLayout(n, extended){
     var stickers = [];
-    var side = extended ? 2 : 0;//extra columns outside each bar
-    var left = side;            //x of the left bar
-    var faceX = left + 1;
-    var right = faceX + n;      //x of the right bar
-    var fY = n + BLOCK_GAP;     //y of the F block
+    var g = blockGap(n);
+    var side = extended ? n - 1 : 0;//extra columns of L and R outside each bar
+    var left = side + g;            //x of the left bar
+    var faceX = left + 1 + g;       //x of the U and F blocks
+    var right = faceX + n + g;      //x of the right bar
+    var uY = g;                     //y of the U block
+    var fY = uY + n + g;            //y of the F block
 
     for (var row = 0; row < n; row++){
         for (var col = 0; col < n; col++){
-            stickers.push({x: faceX + col, y: row, face: "u", index: stickerIndex(n, row, col)});
+            stickers.push({x: faceX + col, y: uY + row, face: "u", index: stickerIndex(n, row, col)});
             stickers.push({x: faceX + col, y: fY + row, face: "f", index: stickerIndex(n, row, col)});
         }
     }
@@ -555,27 +562,29 @@ function cubeLayout(n, extended){
     //L: the row touching U runs down the bar, then the column touching F continues it.
     //The shared corner is L's top right, drawn across the gap.
     for (var i = 0; i < n - 1; i++){
-        stickers.push({x: left, y: i, face: "l", index: stickerIndex(n, 0, i)});
-        stickers.push({x: right, y: i, face: "r", index: stickerIndex(n, 0, n - 1 - i)});
+        stickers.push({x: left, y: uY + i, face: "l", index: stickerIndex(n, 0, i)});
+        stickers.push({x: right, y: uY + i, face: "r", index: stickerIndex(n, 0, n - 1 - i)});
     }
-    stickers.push({x: left, y: n - 1, h: 1 + BLOCK_GAP + 1, face: "l", index: stickerIndex(n, 0, n - 1)});
-    stickers.push({x: right, y: n - 1, h: 1 + BLOCK_GAP + 1, face: "r", index: stickerIndex(n, 0, 0)});
+    stickers.push({x: left, y: uY + n - 1, h: 1 + g + 1, face: "l", index: stickerIndex(n, 0, n - 1)});
+    stickers.push({x: right, y: uY + n - 1, h: 1 + g + 1, face: "r", index: stickerIndex(n, 0, 0)});
     for (var i = 1; i < n; i++){
         stickers.push({x: left, y: fY + i, face: "l", index: stickerIndex(n, i, n - 1)});
         stickers.push({x: right, y: fY + i, face: "r", index: stickerIndex(n, i, 0)});
     }
 
-    //The extension shows the rest of L and R alongside the lower rows of F.
+    //The extension shows the rest of L and R alongside the lower rows of F. These are the same
+    //face as the bar beside them, so they sit flush against it - only the outer edge gets a gap.
     if (extended){
         for (var row = 1; row < n; row++){
             for (var col = 0; col < n - 1; col++){
-                stickers.push({x: col, y: fY + row, face: "l", index: stickerIndex(n, row, col)});
+                stickers.push({x: g + col, y: fY + row, face: "l", index: stickerIndex(n, row, col)});
                 stickers.push({x: right + 1 + col, y: fY + row, face: "r", index: stickerIndex(n, row, col + 1)});
             }
         }
     }
 
-    return {cols: n + 2 + side * 2, rows: 2 * n + BLOCK_GAP, stickers: stickers};
+    //Four gaps across - outer, bar to face, face to bar, outer - and three down.
+    return {cols: n + 2 + g * 4 + side * 2, rows: 2 * n + g * 3, stickers: stickers};
 }
 
 function currentCubeView(){
