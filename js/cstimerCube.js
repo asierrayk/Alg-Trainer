@@ -173,9 +173,23 @@
         }
     };
 
-    window.cube3dResize = function () {
+    //Fraction of the square canvas that one face of the cube spans once twisty has drawn it in
+    //perspective at scale 0.9. Measured from the rendered picture; it is what lets a 3D face
+    //come out about the size of a flat one. See resizeCube in js/RubiksCube.js.
+    var FACE_FRACTION = 0.67;
+
+    //cell is the size of one sticker in the flat views, so the 3D cube can be drawn to match.
+    //Without it the twisty simply fills whatever space the container has.
+    window.cube3dResize = function (cell) {
         if (!scene || failed) {
             return;
+        }
+        var box = document.getElementById("simcube");
+        if (cell && box) {
+            var side = Math.min(3 * cell / FACE_FRACTION, box.clientWidth, box.clientHeight);
+            container.style.flex = "none";
+            container.style.width = Math.round(side) + "px";
+            container.style.height = Math.round(side) + "px";
         }
         scene.resize();
     };

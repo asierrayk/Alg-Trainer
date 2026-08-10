@@ -32,6 +32,14 @@ function syncCube3d(){
     cube3dApply(algorithmSinceReset, false);
 }
 
+//The solution takes over the top of the stage while it is up, so the scramble line and the
+//timer get out of its way. Everything that writes or clears the solution goes through here so
+//the two stay in step. An empty string is still an empty string, which other code tests for.
+function setAlgDisplay(html){
+    document.getElementById("algdisp").innerHTML = html;
+    document.getElementById("stage").classList.toggle("showing-solution", html !== "");
+}
+
 function whileSettingUpCase(build){
     settingUpCase = true;
     try {
@@ -55,26 +63,36 @@ var canvas = document.getElementById("cube");
 var ctx = canvas.getContext("2d");
 var stickerSize = canvas.width/9;//Recomputed by resizeCube once the layout is known
 
-//Each view has its own grid of cells - see cubeLayout - so fit the biggest such grid into
-//whatever space the stage gives us, and draw at device resolution so it stays sharp on a phone.
+//A sticker is the same size in every view. The grids differ - see cubeLayout - so the size of a
+//cell comes from the widest of them, the extended one, rather than from whichever view is up:
+//fitting each view to the box in turn would blow the plain qcube up to fill the extra width the
+//extended one needs for its side panels. The narrower views simply use less of the box.
+function cubeCellSize(box){
+    var n = document.getElementById("cubeType").value == "2x2" ? 2 : 3;
+    var reference = cubeLayout(n, true);
+    return Math.min(box.clientWidth / reference.cols, box.clientHeight / reference.rows);
+}
+
 function resizeCube(){
     var box = document.getElementById("simcube");
     if (!box || !box.clientWidth || !box.clientHeight){
         return;
     }
 
+    var cell = cubeCellSize(box);
+    if (cell < 1){
+        return;
+    }
+
     if (currentCubeView() === "3d"){
-        cube3dResize();
+        cube3dResize(cell);
         return;
     }
 
     var layout = activeCubeLayout();
     var dpr = window.devicePixelRatio || 1;
-    var cell = Math.min(box.clientWidth / layout.cols, box.clientHeight / layout.rows);
-    if (cell < 1){
-        return;
-    }
 
+    //Draw at device resolution so it stays sharp on a phone
     canvas.style.width = (cell * layout.cols) + "px";
     canvas.style.height = (cell * layout.rows) + "px";
     canvas.width = Math.round(cell * layout.cols * dpr);
@@ -711,6 +729,12 @@ function doAlg(algorithm){
 
     checkGestures();
 
+    //Only turns the user actually made move the guide along, and only while a solution is up.
+    //This has to happen before the solved-cube branch below, which clears the display.
+    if (isSingleMove && !settingUpCase){
+        algGuideOnMove(algorithm.trim());
+    }
+
     //Solving the cube finishes the case and brings up the next one. This used to be gated on the
     //timer running, which meant it never happened at all with the timer hidden, since startTimer
     //bails out in that case.
@@ -1017,7 +1041,8 @@ function testAlg(algTest, addToHistory=true){
         scramble.innerHTML = "&nbsp;";
     }
 
-    document.getElementById("algdisp").innerHTML = "";
+    stopAlgGuide();
+    setAlgDisplay("");
 
     whileSettingUpCase(function(){
         resetCubeForCase();
@@ -1084,7 +1109,7 @@ function updateTrainer(scramble, solutions, algorithm, timer){
         document.getElementById("scramble").innerHTML = scramble;
     }
     if (solutions!=null){
-        document.getElementById("algdisp").innerHTML = solutions;
+        setAlgDisplay(solutions);
     }
 
     if (algorithm!=null){
@@ -1189,12 +1214,13 @@ function displayAlgorithm(algTest, reTest=true){
         reTestAlg();
     }
 
-    updateTrainer(algTest.scramble, algTest.solutions.join("<br><br>"), null, null);
+    startAlgGuide(algTest);
+    updateTrainer(algTest.scramble, renderAlgGuide(), null, null);
 
     scramble.style.color = '#e6e6e6';
 }
 
-function displayAlgorithmFromHistory(index){    
+function displayAlgorithmFromHistory(index){
 
     var algTest = algorithmHistory[index];
 
@@ -1207,7 +1233,8 @@ function displayAlgorithmFromHistory(index){
         timerText = algTest.solveTime.toString()
     }
 
-    updateTrainer("<span style=\"color: #90f182\">" + algTest.orientRandPart + "</span>" + " "+ algTest.scramble, algTest.solutions.join("<br><br>"), algTest.preorientation+algTest.scramble, timerText);
+    startAlgGuide(algTest);
+    updateTrainer("<span style=\"color: #90f182\">" + algTest.orientRandPart + "</span>" + " "+ algTest.scramble, renderAlgGuide(), algTest.preorientation+algTest.scramble, timerText);
 
     scramble.style.color = '#e6e6e6';
 }
@@ -1223,7 +1250,8 @@ function displayAlgorithmForPreviousTest(reTest=true){//not a great name
         reTestAlg();
     }
 
-    updateTrainer("<span style=\"color: #90f182\">" + lastTest.orientRandPart + "</span>" + " "+ lastTest.scramble, lastTest.solutions.join("<br><br>"), null, null);
+    startAlgGuide(lastTest);
+    updateTrainer("<span style=\"color: #90f182\">" + lastTest.orientRandPart + "</span>" + " "+ lastTest.scramble, renderAlgGuide(), null, null);
 
     scramble.style.color = '#e6e6e6';
 }
@@ -1563,7 +1591,8 @@ function updateControls() {
         }
         reTestAlg();
         document.getElementById("scramble").innerHTML = "&nbsp;";
-        document.getElementById("algdisp").innerHTML = "";
+        stopAlgGuide();
+        setAlgDisplay("");
     });
     listener.register(new KeyCombo("Enter"), function() {
         nextScramble();

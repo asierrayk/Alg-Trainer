@@ -46,15 +46,55 @@
         }
     }, true);
 
-    //Clicking a HUD button leaves it focused, and both the move keys (Listener.keydown) and the
-    //space handlers only fire when focus is on the body. Hand the keyboard straight back.
-    var controls = document.getElementById("controls");
-    if (controls) {
-        controls.addEventListener("click", function (e) {
+    //Using a control on the top bar leaves it focused, and both the move keys (Listener.keydown)
+    //and the space handlers only fire when focus is on the body. Hand the keyboard straight back.
+    var stageBar = document.getElementById("stageBar");
+    if (stageBar) {
+        function releaseKeyboard(e) {
             if (e.target && e.target.blur) {
                 e.target.blur();
             }
+        }
+        stageBar.addEventListener("click", releaseKeyboard);
+        stageBar.addEventListener("change", releaseKeyboard);
+    }
+
+    //The stage buttons are gone, so touch drives the trainer: a tap shows the solution and a
+    //swipe steps through the cases, the same actions the cube gestures bind to. Swiping right
+    //past the newest case makes a new scramble - showNextCase already does that.
+    var stage = document.getElementById("stage");
+    if (stage) {
+        var SWIPE = 40;//px across before it counts as a swipe rather than a tap
+        var TAP = 10;  //px of slop allowed in a tap
+        var TAP_MS = 500;
+        var start = null;
+
+        stage.addEventListener("pointerdown", function (e) {
+            //The bar and the panel own their own clicks
+            if (e.target.closest && e.target.closest("#stageBar, #settingsPanel")) {
+                start = null;
+                return;
+            }
+            start = {x: e.clientX, y: e.clientY, at: Date.now()};
         });
+
+        stage.addEventListener("pointerup", function (e) {
+            if (!start || typeof runGestureAction !== "function") {
+                return;
+            }
+            var dx = e.clientX - start.x;
+            var dy = e.clientY - start.y;
+            var dt = Date.now() - start.at;
+            start = null;
+
+            if (Math.abs(dx) > SWIPE && Math.abs(dx) > Math.abs(dy)) {
+                runGestureAction(dx < 0 ? "nextCase" : "previousCase");
+            } else if (Math.abs(dx) < TAP && Math.abs(dy) < TAP && dt < TAP_MS) {
+                runGestureAction("showSolution");
+            }
+        });
+
+        stage.addEventListener("pointercancel", function () { start = null; });
     }
 
     if (typeof initControlsEditor === "function") {

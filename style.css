@@ -47,21 +47,48 @@ a:visited {
     display: none;
 }
 
+/*
+ * Everything around the cube sits in a band of fixed height, so the space left for the cube is
+ * the same whatever the trainer is doing: solution up or down, long alg or short, any cube
+ * view. Nothing here may grow with its content.
+ */
 #stage {
     display: flex;
     flex-direction: column;
     align-items: center;
     height: 100vh;
     height: 100dvh;
-    /* top band keeps #stageButtons clear of the scramble at every width */
-    padding: calc(52px + env(safe-area-inset-top)) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     box-sizing: border-box;
     overflow: hidden;
 }
 
-p.scramble {
+/* The two lines are stacked on top of each other rather than after one another: only one of
+   them is ever visible, and this way neither can change how tall the band is. */
+#hudTop {
     flex: none;
-    margin: 0.4em 0.5em 0.2em 0.5em;
+    position: relative;
+    width: 100%;
+    height: 5em;
+}
+
+#hudTop > p {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* an unusually long alg is clipped rather than allowed to push the cube about */
+    overflow: hidden;
+}
+
+p.scramble {
+    padding: 0 0.5em;
     text-align: center;
     font-size: clamp(15px, 3.5vw, 24px);
     word-break: break-word;
@@ -84,15 +111,15 @@ p.scramble {
 #hudBottom {
     flex: none;
     width: 100%;
-    text-align: center;
-    /* stays at the bottom even when the virtual cube is switched off and #simcube is hidden */
-    margin-top: auto;
-    /* clear of the fixed #controls row */
-    padding-bottom: 4.2em;
+    /* room for the timer at its largest, fixed so hiding the timer costs the cube nothing */
+    height: 2.4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #hudBottom > p {
-    margin: 0.15em 0;
+    margin: 0;
 }
 
 #timer {
@@ -101,48 +128,90 @@ p.scramble {
     color: white;
 }
 
+/* ---- The solution, guided move by move. See js/algGuide.js ---- */
+
 p.algdisp {
-    font-size: clamp(14px, 3.2vw, 20px);
+    padding: 0 0.8em;
+    text-align: center;
+    font-size: clamp(15px, 3.6vw, 24px);
     word-break: break-word;
+}
+
+/* The solution is the whole point while it is on screen, so nothing else competes with it.
+   Everything here is hidden rather than removed: taking it out of the flow would hand the
+   space to the cube and change its size, which is exactly what must not happen. */
+p.algdisp {
+    visibility: hidden;
+}
+
+#stage.showing-solution p.algdisp {
+    visibility: visible;
+}
+
+#stage.showing-solution #scramble,
+#stage.showing-solution #hudBottom {
+    visibility: hidden;
+}
+
+.algAlt + .algAlt {
+    margin-top: 0.6em;
+}
+
+/* Alternative algs are still there to be read, just not the one being guided */
+.algAlt:not(.active) {
+    color: #8a8a8a;
+    font-size: 0.8em;
+}
+
+.algMove {
+    color: #e6e6e6;
+    white-space: nowrap;
+}
+
+.algMove.done {
+    color: #6b6b6b;
+}
+
+.algMove.next {
+    color: #90f182;
+    font-weight: bold;
+}
+
+.algMove.wrong {
+    color: #ff6b6b;
+    font-weight: bold;
+}
+
+.algFix {
+    color: #ff6b6b;
+    font-size: 0.7em;
 }
 
 #statistics {
     font-size: 18px;
 }
 
-#controls {
-    position: fixed;
-    left: 50%;
-    bottom: 0;
-    transform: translate(-50%, 0);
-    display: flex;
-    gap: 0.5em;
-    padding-bottom: env(safe-area-inset-bottom);
-}
+/* ---- The top bar: what you change mid-session, without opening the settings ---- */
 
-#controls > button {
-    background-color: grey;
-    border: none;
-    color: white;
-    padding: 15px 24px;
-    min-height: 44px;
-    text-align: center;
-    text-decoration: none;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-#stageButtons {
-    position: fixed;
-    top: 0.4em;
-    right: 0.4em;
+#stageBar {
+    flex: none;
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: 52px;
     display: flex;
+    align-items: center;
+    justify-content: flex-end;
     gap: 0.4em;
+    padding: 0 0.4em;
     z-index: 2;
 }
 
-#stageButtons > button {
+#stageBar > button,
+#stageBar > label,
+#stageBar > select {
     height: 44px;
+    box-sizing: border-box;
     background: transparent;
     color: white;
     border: 1px solid #444;
@@ -154,12 +223,18 @@ p.algdisp {
 #openSettings {
     width: 44px;
     font-size: 24px;
+    flex: none;
 }
 
 #connectGiiker {
     padding: 0 0.9em;
     font-size: 15px;
     white-space: nowrap;
+    /* the first thing to give way on a narrow phone - the gear must never be the one that goes */
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #connectGiiker.connected {
@@ -170,6 +245,50 @@ p.algdisp {
 #connectGiiker:disabled {
     cursor: default;
     opacity: 0.85;
+}
+
+/* Sized to the name rather than to the longest one in the list, and free to shrink, so a long
+   algset name can never push the gear off the edge of a phone. */
+select.algsetpicker {
+    flex: 0 1 auto;
+    width: 6.5em;
+    min-width: 4em;
+    padding: 0 0.3em;
+    font-size: 15px;
+    /* the drop-down list is drawn by the browser, so it needs a colour of its own */
+    background: #111;
+}
+
+select.algsetpicker > option {
+    background: #111;
+    color: white;
+}
+
+/* Checkbox styled as one of the bar's buttons: the box itself is out of the way and the label
+   carries the state. */
+#goInOrder {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+#goInOrderLabel {
+    display: flex;
+    align-items: center;
+    padding: 0 0.7em;
+    font-size: 15px;
+    white-space: nowrap;
+    flex: none;
+}
+
+#goInOrder:checked + #goInOrderLabel {
+    color: #6ee36e;
+    border-color: #6ee36e;
+}
+
+#goInOrder:focus-visible + #goInOrderLabel {
+    outline: 2px solid #6ee36e;
 }
 
 
@@ -289,10 +408,6 @@ p.algdisp {
     margin: 0.5em 0;
 }
 
-.algsetpicker {
-    width: 100%;
-}
-
 #userDefinedAlgs {
     width: 100%;
     max-width: 100%;
@@ -391,45 +506,50 @@ body.standalone-editor select {
     #stage {
         display: grid;
         grid-template-columns: 1fr minmax(170px, 34%);
-        grid-template-rows: auto 1fr;
+        grid-template-rows: auto auto 1fr;
         grid-template-areas:
-            "cube scramble"
+            "cube bar"
+            "cube hudtop"
             "cube hud";
         align-items: start;
-        /* the cube column spans both rows, so shifting the scramble down for the buttons
-           costs the HUD row height, not the cube */
-        padding-top: env(safe-area-inset-top);
     }
 
-    #stage > p.scramble {
-        margin-top: 52px;
-    }
-
+    /* The cube column spans all three rows, so it keeps the full height whatever the side
+       column is doing - and the side column's rows are still fixed, so nothing moves. */
     #simcube {
         grid-area: cube;
         height: 100%;
     }
 
+    /* The side column is narrow, so the bar is allowed to wrap onto a second line here. The
+       cube spans every row, so a taller side column costs it nothing. */
+    #stageBar {
+        grid-area: bar;
+        height: auto;
+        min-height: 52px;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    #hudTop {
+        grid-area: hudtop;
+        height: 5.6em;
+    }
+
     p.scramble {
-        grid-area: scramble;
-        margin: 0.3em 3em 0.2em 0.5em;
         font-size: clamp(13px, 2.4vw, 18px);
+    }
+
+    p.algdisp {
+        font-size: clamp(13px, 2.6vw, 18px);
     }
 
     #hudBottom {
         grid-area: hud;
-        margin-top: 0;
-        padding-bottom: 3.4em;
     }
 
     #timer {
         font-size: clamp(18px, 4vw, 26px);
-    }
-
-    #controls > button {
-        padding: 10px 14px;
-        min-height: 40px;
-        font-size: 14px;
     }
 }
 
@@ -437,15 +557,6 @@ body.standalone-editor select {
     #settingsPanel {
         width: 100%;
         border-left: none;
-    }
-
-    #hudBottom {
-        padding-bottom: 4em;
-    }
-
-    #controls > button {
-        padding: 13px 16px;
-        font-size: 15px;
     }
 }
 

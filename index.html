@@ -16,7 +16,19 @@
 
             <main id="stage">
 
-                <p id="scramble" class=scramble>Scramble</p>
+                <div id="stageBar">
+                    <select id="algsetpicker" class=algsetpicker title="Algset"></select>
+                    <input id="goInOrder" type="checkbox"><label id="goInOrderLabel" for="goInOrder" title="Go through the algset in order rather than at random">&#8645; Order</label>
+                    <button id="connectGiiker" type="button" title="Connect a smart cube over bluetooth">Connect Cube</button>
+                    <button id="openSettings" type="button" title="Settings" aria-label="Settings">&#9881;</button>
+                </div>
+
+                <!-- Fixed height, with the two lines overlaid: whichever is showing, the cube
+                     below it keeps exactly the same space. -->
+                <div id="hudTop">
+                    <p id="algdisp" class=algdisp></p>
+                    <p id="scramble" class=scramble>Scramble</p>
+                </div>
 
                 <div id="simcube">
                     <canvas id="cube" width="350" height="300"></canvas>
@@ -24,17 +36,6 @@
 
                 <div id="hudBottom">
                     <p id="timer">0.00</p>
-                    <p id="algdisp" class=algdisp>Solution</p>
-                </div>
-
-                <div id="controls">
-                    <button type="button" onclick="displayAlgorithmForPreviousTest()">Show Solution</button>
-                    <button type="button" onclick="nextScramble()">Next Scramble</button>
-                </div>
-
-                <div id="stageButtons">
-                    <button id="connectGiiker" type="button" title="Connect a smart cube over bluetooth">Connect Cube</button>
-                    <button id="openSettings" type="button" title="Settings" aria-label="Settings">&#9881;</button>
                 </div>
 
             </main>
@@ -52,8 +53,7 @@
 
                     <details open>
                         <summary>Algset</summary>
-                        <select id="algsetpicker" size=18 class=algsetpicker>
-                        </select>
+                        <p class="hint">The algset itself is picked on the top bar, next to the settings gear. These checkboxes narrow it down to subsets.</p>
                         <div id="cboxes"></div>
                         <p class="hint">Leave all checkboxes unchecked to test on the full algset.</p>
                         <input id="userDefined" type="checkbox">Use user defined algset
@@ -131,9 +131,9 @@
                         <input id="realScrambles" type="checkbox">Use Real Scrambles<br>
                         <input id="randAUF" type="checkbox">Random AUF<br>
                         <input id="prescramble" type="checkbox" checked="true">Scramble subsequent steps (requires real scrambles to be checked)<br>
-                        <input id="goInOrder" type="checkbox">Go in order<br>
                         <input id="goToNextCase" type="checkbox">Don't show alg after stopping timer (press the left arrow key to view previous case)<br>
                         <input id="mirrorAllAlgs" type="checkbox">Mirror all algs across the M slice<br>
+                        <p class="hint">Go in order is on the top bar, next to the algset picker.</p>
                     </details>
 
                     <details>
@@ -183,6 +183,9 @@
                         <summary>Current case</summary>
                         <img src="https://www.cubing.net/api/visualcube/?fmt=svg&size=300&view=plan&bg=black&alg=z2" id="visualcube" title="Click to switch between flat and 3D view"/>
                         <p class="hint">Click the cube to switch between flat and 3D view.</p>
+                        <h3>Other algs for this case</h3>
+                        <p class="hint">The stage shows the one being guided. Start turning a different one and the guide follows you onto it.</p>
+                        <div id="algAlternatives"></div>
                     </details>
 
                     <details>
@@ -203,6 +206,11 @@
                         <b>Space</b>: Stop timer and show algorithm.<br>
                         <b>Left and right arrow keys</b>: View previously tested algs. <br>
                         <b>Backspace</b>: Show algorithm without starting timer.
+
+                        <h3>Touch</h3>
+                        <b>Tap</b>: Show the algorithm.<br>
+                        <b>Swipe left</b>: Next case - swiping past the last one gives you a new scramble.<br>
+                        <b>Swipe right</b>: Previous case.
 
                         <h3>Virtual cube controls</h3>
                         Space: Stop timer, show algorithm and reset case.<br>
@@ -258,6 +266,7 @@
         <script src="js/twistynnn.js"></script>
         <script src="js/cstimerCube.js"></script>
         <script src="js/RubiksCube.js"></script>
+        <script src="js/algGuide.js"></script>
         <script src="js/controlsEditor.js"></script>
         <script src="js/gesturesEditor.js"></script>
         <script src="js/ui.js"></script>
